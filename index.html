@@ -7012,5 +7012,704 @@ var ld=document.getElementById("app-loading");if(ld)ld.remove();
 document.getElementById("root").innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#dc2626">App Error</h2><p style="color:#64748b;margin:12px 0">'+e.message+'</p><button onclick="location.reload()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer">Reload</button></div>';
 }
 </script>
+<script>/* Supabase Persistence Layer */
+/**
+ * Supabase Persistence Layer for Sales AI App
+ * Handles sync between app's flat deal object format and Supabase relational schema
+ * Provides write-through caching with localStorage fallback
+ */
+
+(function () {
+  'use strict';
+
+  const SUPABASE_URL = 'https://lkoqstzhlbujmtgoyeop.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrb3FzdHpobGJ1am10Z295ZW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzg2OTEsImV4cCI6MjA5MDcxNDY5MX0.M8MRNeFGGRZT70jMvVE61m5UE2v2hK9dLEV02AjHvZU';
+  const STORAGE_BUCKET_DOCS = 'deal-documents';
+  const STORAGE_BUCKET_GENERATED = 'generated-outputs';
+  const LOCALSTORAGE_KEY = 'salesai_deals_v2'; // matches the existing app's key
+  const DEAL_MAPPING_KEY = 'sales-ai-deal-mapping';
+  const LOG_PREFIX = '[SupabaseSync]';
+  const RETRY_ATTEMPTS = 3;
+  const RETRY_DELAY = 1000; // ms
+
+  let supabaseClient = null;
+  let isInitialized = false;
+  let dealKeyToIdMap = {}; // Maps dealKey (slug) -> UUID from Supabase
+
+  /**
+   * Load and initialize Supabase client from CDN
+   */
+  async function initSupabase() {
+    return new Promise((resolve, reject) => {
+      if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log(`${LOG_PREFIX} Supabase client initialized`);
+        isInitialized = true;
+        resolve();
+        return;
+      }
+
+      // Load from CDN if not already loaded
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/dist/umd/supabase.js';
+      script.onload = () => {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log(`${LOG_PREFIX} Supabase client initialized`);
+        isInitialized = true;
+        resolve();
+      };
+      script.onerror = () => {
+        console.error(`${LOG_PREFIX} Failed to load Supabase library`);
+        reject(new Error('Failed to load Supabase library'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  /**
+   * Restore deal mapping from localStorage
+   */
+  function restoreDealMapping() {
+    try {
+      const stored = localStorage.getItem(DEAL_MAPPING_KEY);
+      if (stored) {
+        dealKeyToIdMap = JSON.parse(stored);
+        console.log(`${LOG_PREFIX} Restored deal mapping:`, dealKeyToIdMap);
+      }
+    } catch (err) {
+      console.warn(`${LOG_PREFIX} Failed to restore deal mapping:`, err);
+      dealKeyToIdMap = {};
+    }
+  }
+
+  /**
+   * Save deal mapping to localStorage
+   */
+  function saveDealMapping() {
+    try {
+      localStorage.setItem(DEAL_MAPPING_KEY, JSON.stringify(dealKeyToIdMap));
+    } catch (err) {
+      console.warn(`${LOG_PREFIX} Failed to save deal mapping:`, err);
+    }
+  }
+
+  /**
+   * Retry logic wrapper
+   */
+  async function withRetry(fn, description) {
+    let lastError;
+    for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        lastError = err;
+        if (attempt < RETRY_ATTEMPTS) {
+          const delay = RETRY_DELAY * attempt;
+          console.warn(`${LOG_PREFIX} ${description} failed (attempt ${attempt}/${RETRY_ATTEMPTS}), retrying in ${delay}ms:`, err.message);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    throw lastError;
+  }
+
+  /**
+   * Convert app flat format to Supabase format
+   */
+  function dealToSupabaseFormat(dealKey, dealData) {
+    const now = new Date().toISOString();
+
+    // Extract fields that map directly to columns
+    const supabaseDeal = {
+      name: dealData.name || dealKey,
+      stage: dealData.stage || null,
+      acv: dealData.acv || null,
+      tcv: dealData.tcv || null,
+      close_date: dealData.closeDate || dealData.date || null,
+      go_live_date: dealData.goLiveDate || null,
+      products: Array.isArray(dealData.products) ? dealData.products : [],
+      meddpicc: dealData.meddpicc || {},
+      risks: Array.isArray(dealData.risks) ? dealData.risks : []
+    };
+
+    // Store everything else in pricing JSONB as _appData
+    const appDataFields = {
+      dealKey,
+      notes: dealData.notes || '',
+      driveUrl: dealData.driveUrl || '',
+      docs: Array.isArray(dealData.docs) ? dealData.docs : [],
+      agentSeats: dealData.agentSeats || '',
+      concurrentUsers: dealData.concurrentUsers || '',
+      monthlyInteractions: dealData.monthlyInteractions || '',
+      virtualAgents: dealData.virtualAgents || '',
+      channels: Array.isArray(dealData.channels) ? dealData.channels : [],
+      currentVendor: dealData.currentVendor || '',
+      contractTerm: dealData.contractTerm || '',
+      deploymentModel: dealData.deploymentModel || '',
+      region: dealData.region || '',
+      integrations: Array.isArray(dealData.integrations) ? dealData.integrations : [],
+      professionalServices: dealData.professionalServices || '',
+      expansionPotential: dealData.expansionPotential || '',
+      generated: dealData.generated || {}
+    };
+
+    supabaseDeal.pricing = {
+      _appData: appDataFields
+    };
+
+    return supabaseDeal;
+  }
+
+  /**
+   * Convert Supabase format back to app flat format
+   */
+  function dealFromSupabaseFormat(dbDeal) {
+    const appData = (dbDeal.pricing && dbDeal.pricing._appData) || {};
+
+    return {
+      name: dbDeal.name,
+      stage: dbDeal.stage || '',
+      acv: dbDeal.acv || '',
+      tcv: dbDeal.tcv || '',
+      date: dbDeal.close_date || '',
+      closeDate: dbDeal.close_date || '',
+      goLiveDate: dbDeal.go_live_date || '',
+      notes: appData.notes || '',
+      driveUrl: appData.driveUrl || '',
+      docs: Array.isArray(appData.docs) ? appData.docs : [],
+      generated: appData.generated || {},
+      meddpicc: dbDeal.meddpicc || null,
+      products: Array.isArray(dbDeal.products) ? dbDeal.products : [],
+      risks: Array.isArray(dbDeal.risks) ? dbDeal.risks : [],
+      agentSeats: appData.agentSeats || '',
+      concurrentUsers: appData.concurrentUsers || '',
+      monthlyInteractions: appData.monthlyInteractions || '',
+      virtualAgents: appData.virtualAgents || '',
+      channels: Array.isArray(appData.channels) ? appData.channels : [],
+      currentVendor: appData.currentVendor || '',
+      contractTerm: appData.contractTerm || '',
+      deploymentModel: appData.deploymentModel || '',
+      region: appData.region || '',
+      integrations: Array.isArray(appData.integrations) ? appData.integrations : [],
+      professionalServices: appData.professionalServices || '',
+      expansionPotential: appData.expansionPotential || '',
+      updates: Array.isArray(appData.updates) ? appData.updates : []
+    };
+  }
+
+  /**
+   * Load all deals from Supabase and convert to app format
+   */
+  async function loadFromSupabase() {
+    if (!isInitialized) {
+      throw new Error('Supabase not initialized');
+    }
+
+    console.log(`${LOG_PREFIX} Loading deals from Supabase...`);
+
+    try {
+      const deals = await withRetry(async () => {
+        const { data, error } = await supabaseClient
+          .from('deals')
+          .select('*');
+
+        if (error) throw error;
+        return data || [];
+      }, 'Loading deals from Supabase');
+
+      console.log(`${LOG_PREFIX} Loaded ${deals.length} deals from Supabase`);
+
+      // Load updates for all deals
+      const updates = await withRetry(async () => {
+        const { data, error } = await supabaseClient
+          .from('deal_updates')
+          .select('deal_id, text, timestamp');
+
+        if (error) throw error;
+        return data || [];
+      }, 'Loading deal updates');
+
+      // Convert to app format
+      const allDeals = {};
+      for (const dbDeal of deals) {
+        const dealKey = (dbDeal.pricing && dbDeal.pricing._appData && dbDeal.pricing._appData.dealKey)
+          || dbDeal.name.toLowerCase().replace(/\s+/g, '-');
+
+        const appDeal = dealFromSupabaseFormat(dbDeal);
+
+        // Attach updates
+        const dealUpdates = updates.filter(u => u.deal_id === dbDeal.id);
+        appDeal.updates = dealUpdates.map(u => ({
+          text: u.text,
+          timestamp: u.timestamp
+        }));
+
+        allDeals[dealKey] = appDeal;
+        dealKeyToIdMap[dealKey] = dbDeal.id;
+      }
+
+      saveDealMapping();
+      console.log(`${LOG_PREFIX} Successfully loaded and converted ${Object.keys(allDeals).length} deals`);
+      return allDeals;
+    } catch (err) {
+      console.error(`${LOG_PREFIX} Failed to load from Supabase:`, err);
+      console.log(`${LOG_PREFIX} Falling back to localStorage cache`);
+      return getLocalStorageCache();
+    }
+  }
+
+  /**
+   * Get cache from localStorage
+   */
+  function getLocalStorageCache() {
+    try {
+      const cached = localStorage.getItem(LOCALSTORAGE_KEY);
+      if (cached) {
+        const deals = JSON.parse(cached);
+        console.log(`${LOG_PREFIX} Restored ${Object.keys(deals).length} deals from localStorage cache`);
+        return deals;
+      }
+    } catch (err) {
+      console.warn(`${LOG_PREFIX} Failed to load localStorage cache:`, err);
+    }
+    return {};
+  }
+
+  /**
+   * Save all deals to localStorage
+   */
+  function saveToLocalStorage(allDeals) {
+    try {
+      localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(allDeals));
+      console.log(`${LOG_PREFIX} Saved ${Object.keys(allDeals).length} deals to localStorage`);
+    } catch (err) {
+      console.error(`${LOG_PREFIX} Failed to save to localStorage:`, err);
+    }
+  }
+
+  /**
+   * Sync all deals to Supabase (create/update)
+   */
+  async function syncToSupabase(allDeals) {
+    if (!isInitialized) {
+      throw new Error('Supabase not initialized');
+    }
+
+    console.log(`${LOG_PREFIX} Starting sync of ${Object.keys(allDeals).length} deals to Supabase...`);
+    restoreDealMapping();
+
+    const results = {
+      created: 0,
+      updated: 0,
+      failed: 0,
+      errors: []
+    };
+
+    for (const [dealKey, dealData] of Object.entries(allDeals)) {
+      try {
+        const supabaseDeal = dealToSupabaseFormat(dealKey, dealData);
+        const existingId = dealKeyToIdMap[dealKey];
+
+        if (existingId) {
+          // Update existing deal
+          await withRetry(async () => {
+            const { error } = await supabaseClient
+              .from('deals')
+              .update(supabaseDeal)
+              .eq('id', existingId);
+
+            if (error) throw error;
+          }, `Updating deal "${dealKey}"`);
+
+          results.updated++;
+          console.log(`${LOG_PREFIX} Updated deal "${dealKey}" (${existingId})`);
+        } else {
+          // Create new deal
+          const { data, error } = await withRetry(async () => {
+            return supabaseClient
+              .from('deals')
+              .insert([supabaseDeal])
+              .select('id');
+          }, `Creating deal "${dealKey}"`);
+
+          if (error) throw error;
+
+          if (data && data[0]) {
+            const newId = data[0].id;
+            dealKeyToIdMap[dealKey] = newId;
+            results.created++;
+            console.log(`${LOG_PREFIX} Created deal "${dealKey}" (${newId})`);
+          }
+        }
+      } catch (err) {
+        results.failed++;
+        results.errors.push({ dealKey, error: err.message });
+        console.error(`${LOG_PREFIX} Failed to sync deal "${dealKey}":`, err);
+      }
+    }
+
+    saveDealMapping();
+    saveToLocalStorage(allDeals);
+
+    console.log(`${LOG_PREFIX} Sync complete:`, {
+      created: results.created,
+      updated: results.updated,
+      failed: results.failed
+    });
+
+    return results;
+  }
+
+  /**
+   * Upload a file to the deal-documents bucket
+   */
+  async function uploadFile(dealKey, file) {
+    if (!isInitialized) {
+      throw new Error('Supabase not initialized');
+    }
+
+    restoreDealMapping();
+    const dealId = dealKeyToIdMap[dealKey];
+
+    if (!dealId) {
+      throw new Error(`Deal "${dealKey}" not found. Sync to Supabase first.`);
+    }
+
+    console.log(`${LOG_PREFIX} Uploading file "${file.name}" for deal "${dealKey}"...`);
+
+    try {
+      // Generate storage path
+      const timestamp = Date.now();
+      const fileName = `${dealId}/${timestamp}-${file.name}`;
+
+      // Upload to storage
+      const { error: uploadError } = await withRetry(async () => {
+        return supabaseClient.storage
+          .from(STORAGE_BUCKET_DOCS)
+          .upload(fileName, file);
+      }, `Uploading file "${file.name}"`);
+
+      if (uploadError) throw uploadError;
+
+      // Create document record
+      const { error: dbError } = await withRetry(async () => {
+        return supabaseClient
+          .from('deal_documents')
+          .insert([{
+            deal_id: dealId,
+            filename: file.name,
+            file_type: file.type,
+            file_size: file.size,
+            storage_path: fileName
+          }]);
+      }, `Creating document record for "${file.name}"`);
+
+      if (dbError) throw dbError;
+
+      console.log(`${LOG_PREFIX} Successfully uploaded "${file.name}" for deal "${dealKey}"`);
+      return { filename: file.name, storagePath: fileName };
+    } catch (err) {
+      console.error(`${LOG_PREFIX} Failed to upload file:`, err);
+      throw err;
+    }
+  }
+
+  /**
+   * Save a generated document (MAP, Business Case, etc.)
+   */
+  async function saveGeneratedDoc(dealKey, docType, title, content) {
+    if (!isInitialized) {
+      throw new Error('Supabase not initialized');
+    }
+
+    restoreDealMapping();
+    const dealId = dealKeyToIdMap[dealKey];
+
+    if (!dealId) {
+      throw new Error(`Deal "${dealKey}" not found. Sync to Supabase first.`);
+    }
+
+    console.log(`${LOG_PREFIX} Saving generated doc "${docType}" for deal "${dealKey}"...`);
+
+    try {
+      const { data, error } = await withRetry(async () => {
+        return supabaseClient
+          .from('generated_docs')
+          .insert([{
+            deal_id: dealId,
+            doc_type: docType,
+            title: title,
+            content: typeof content === 'string' ? { text: content } : content
+          }])
+          .select('id');
+      }, `Saving generated doc "${docType}"`);
+
+      if (error) throw error;
+
+      const docId = data && data[0] ? data[0].id : null;
+      console.log(`${LOG_PREFIX} Saved generated doc "${docType}" (${docId})`);
+      return { docId, docType, title };
+    } catch (err) {
+      console.error(`${LOG_PREFIX} Failed to save generated doc:`, err);
+      throw err;
+    }
+  }
+
+  /**
+   * Add or update a deal update/note
+   */
+  async function addDealUpdate(dealKey, updateText, timestamp) {
+    if (!isInitialized) {
+      throw new Error('Supabase not initialized');
+    }
+
+    restoreDealMapping();
+    const dealId = dealKeyToIdMap[dealKey];
+
+    if (!dealId) {
+      throw new Error(`Deal "${dealKey}" not found. Sync to Supabase first.`);
+    }
+
+    console.log(`${LOG_PREFIX} Adding update for deal "${dealKey}"...`);
+
+    try {
+      const { data, error } = await withRetry(async () => {
+        return supabaseClient
+          .from('deal_updates')
+          .insert([{
+            deal_id: dealId,
+            text: updateText,
+            timestamp: timestamp || new Date().toISOString()
+          }])
+          .select('id');
+      }, `Adding update for deal "${dealKey}"`);
+
+      if (error) throw error;
+
+      console.log(`${LOG_PREFIX} Added update for deal "${dealKey}"`);
+      return { updateId: data && data[0] ? data[0].id : null };
+    } catch (err) {
+      console.error(`${LOG_PREFIX} Failed to add update:`, err);
+      throw err;
+    }
+  }
+
+  /**
+   * Check if Supabase layer is ready
+   */
+  function isReady() {
+    return isInitialized && supabaseClient !== null;
+  }
+
+  /**
+   * Public API
+   */
+  window.SupabaseLayer = {
+    init: initSupabase,
+    loadFromSupabase: loadFromSupabase,
+    syncToSupabase: syncToSupabase,
+    uploadFile: uploadFile,
+    saveGeneratedDoc: saveGeneratedDoc,
+    addDealUpdate: addDealUpdate,
+    isReady: isReady,
+    getLocalCache: getLocalStorageCache,
+    getMapping: () => ({ ...dealKeyToIdMap })
+  };
+
+  console.log(`${LOG_PREFIX} Module loaded. Call SupabaseLayer.init() to initialize.`);
+})();
+</script>
+<script>/* Supabase Boot - Cloud Sync */
+/**
+ * Supabase Boot Script — Injected AFTER the app code to monkey-patch
+ * localStorage functions with Supabase cloud persistence.
+ *
+ * This script:
+ * 1. Initializes the Supabase layer
+ * 2. On first load, fetches deals from Supabase and merges with localStorage
+ * 3. Overrides saveAllDeals to also sync to Supabase
+ * 4. Adds a sync indicator to the UI
+ */
+(function() {
+  'use strict';
+
+  const BOOT_LOG = '[SupabaseBoot]';
+
+  // Wait for SupabaseLayer to be available
+  if (!window.SupabaseLayer) {
+    console.error(`${BOOT_LOG} SupabaseLayer not loaded! Cloud sync disabled.`);
+    return;
+  }
+
+  // Store references to original functions
+  const _originalLoadAllDeals = window.loadAllDeals;
+  const _originalSaveAllDeals = window.saveAllDeals;
+
+  // Track sync state
+  let supabaseReady = false;
+  let syncInProgress = false;
+  let lastSyncTime = null;
+  let syncDebounceTimer = null;
+  const SYNC_DEBOUNCE_MS = 2000; // Debounce saves to avoid hammering the DB
+
+  // Initialize Supabase and do first sync
+  async function boot() {
+    console.log(`${BOOT_LOG} Initializing Supabase cloud sync...`);
+
+    try {
+      await window.SupabaseLayer.init();
+      supabaseReady = true;
+      console.log(`${BOOT_LOG} Supabase initialized. Loading cloud data...`);
+
+      // Load from Supabase
+      const cloudDeals = await window.SupabaseLayer.loadFromSupabase();
+      const localDeals = _originalLoadAllDeals();
+
+      // Merge: cloud wins for existing deals, local adds new ones
+      const merged = { ...localDeals };
+      let cloudCount = 0;
+      for (const [key, deal] of Object.entries(cloudDeals)) {
+        merged[key] = deal;
+        cloudCount++;
+      }
+
+      // Also push any local-only deals to Supabase
+      const localOnlyKeys = Object.keys(localDeals).filter(k => !cloudDeals[k]);
+      if (localOnlyKeys.length > 0) {
+        console.log(`${BOOT_LOG} Found ${localOnlyKeys.length} local-only deal(s), syncing to cloud...`);
+      }
+
+      // Save merged state back to localStorage
+      _originalSaveAllDeals(merged);
+
+      // Sync everything to Supabase (this handles local-only deals)
+      if (Object.keys(merged).length > 0) {
+        await window.SupabaseLayer.syncToSupabase(merged);
+      }
+
+      lastSyncTime = new Date();
+      console.log(`${BOOT_LOG} Initial sync complete. ${cloudCount} cloud deals, ${localOnlyKeys.length} local-only deals synced.`);
+
+      // If there's a React app already rendered, trigger a refresh
+      // by re-saving to localStorage (the app watches this)
+      if (cloudCount > 0) {
+        _originalSaveAllDeals(merged);
+        // Dispatch a storage event to trigger any listeners
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'salesai_deals_v2',
+          newValue: JSON.stringify(merged)
+        }));
+      }
+
+      addSyncIndicator('synced');
+
+    } catch (err) {
+      console.error(`${BOOT_LOG} Boot failed:`, err);
+      addSyncIndicator('offline');
+    }
+  }
+
+  // Override saveAllDeals to also sync to Supabase
+  window.saveAllDeals = function(allDeals) {
+    // Always save to localStorage immediately (fast, reliable)
+    _originalSaveAllDeals(allDeals);
+
+    // Debounced sync to Supabase
+    if (supabaseReady) {
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(async () => {
+        if (syncInProgress) return;
+        syncInProgress = true;
+        addSyncIndicator('syncing');
+
+        try {
+          await window.SupabaseLayer.syncToSupabase(allDeals);
+          lastSyncTime = new Date();
+          addSyncIndicator('synced');
+        } catch (err) {
+          console.error(`${BOOT_LOG} Background sync failed:`, err);
+          addSyncIndicator('error');
+        } finally {
+          syncInProgress = false;
+        }
+      }, SYNC_DEBOUNCE_MS);
+    }
+  };
+
+  // Add visual sync indicator
+  function addSyncIndicator(status) {
+    let indicator = document.getElementById('supabase-sync-indicator');
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.id = 'supabase-sync-indicator';
+      indicator.style.cssText = `
+        position: fixed;
+        bottom: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 500;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      `;
+      indicator.title = 'Cloud Sync Status';
+      indicator.onclick = () => {
+        if (supabaseReady && !syncInProgress) {
+          const deals = _originalLoadAllDeals();
+          window.saveAllDeals(deals); // Trigger manual sync
+        }
+      };
+      document.body.appendChild(indicator);
+    }
+
+    const states = {
+      synced: {
+        bg: '#dcfce7',
+        color: '#166534',
+        border: '1px solid #86efac',
+        icon: '\u2601\uFE0F',
+        text: 'Cloud Synced' + (lastSyncTime ? ' \u2022 ' + lastSyncTime.toLocaleTimeString() : '')
+      },
+      syncing: {
+        bg: '#fef3c7',
+        color: '#92400e',
+        border: '1px solid #fcd34d',
+        icon: '\u21BB',
+        text: 'Syncing...'
+      },
+      offline: {
+        bg: '#fee2e2',
+        color: '#991b1b',
+        border: '1px solid #fca5a5',
+        icon: '\u26A0\uFE0F',
+        text: 'Offline — Local Only'
+      },
+      error: {
+        bg: '#fee2e2',
+        color: '#991b1b',
+        border: '1px solid #fca5a5',
+        icon: '\u26A0\uFE0F',
+        text: 'Sync Error — Click to retry'
+      }
+    };
+
+    const s = states[status] || states.offline;
+    indicator.style.background = s.bg;
+    indicator.style.color = s.color;
+    indicator.style.border = s.border;
+    indicator.innerHTML = `<span>${s.icon}</span><span>${s.text}</span>`;
+  }
+
+  // Start the boot process
+  boot();
+})();
+</script>
 </body>
 </html>
