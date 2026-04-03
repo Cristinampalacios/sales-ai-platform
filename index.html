@@ -424,6 +424,15 @@ const ICalendar = p => /*#__PURE__*/React.createElement(Icon, _extends({}, p, {
 const IDollar = p => /*#__PURE__*/React.createElement(Icon, _extends({}, p, {
   d: ["M12 1v22", "M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"]
 }));
+const IBarChart = p => /*#__PURE__*/React.createElement(Icon, _extends({}, p, {
+  d: ["M12 20V10", "M18 20V4", "M6 20v-6"]
+}));
+const IPercent = p => /*#__PURE__*/React.createElement(Icon, _extends({}, p, {
+  d: ["M19 5L5 19", "M6.5 9a2.5 2.5 0 100-5 2.5 2.5 0 000 5z", "M17.5 20a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"]
+}));
+const IClipboard = p => /*#__PURE__*/React.createElement(Icon, _extends({}, p, {
+  d: ["M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2", "M15 2H9a1 1 0 00-1 1v1a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1z"]
+}));
 
 // ââ Product Sales Motion Engine ââââââââââââââââââââââââââââââ
 var SALES_MOTIONS = {
@@ -1573,7 +1582,75 @@ function makeDiscountApproval(deal) {
   };
 }
 
-// ââ Helpers âââââââââââââââââââââââââââââââââââââââââââââââââ
+function makeCommercials(deal) {
+  const m = deal.meddpicc;
+  const n = deal.name || "Customer";
+  const sm = getSalesMotion(deal);
+  const acv = m && m.acv || deal.acv || "TBD";
+  const prods = (deal.products || []).join(", ") || sm.category;
+  var sections = [];
+  sections.push({ heading: "Commercial Overview", content: n + " | " + prods + " | ACV: " + acv + (deal.date ? " | Target Close: " + deal.date : "") });
+  sections.push({ heading: "Pricing Summary", items: ["Products: " + prods, "ACV: " + acv, "TCV: " + (deal.tcv || "TBD"), "Term: " + (deal.term || "TBD"), "Payment Terms: Net 30 (standard)", "Billing Frequency: Annual upfront"] });
+  sections.push({ heading: "Sizing & Volume", items: ["Agent Seats: " + (deal.agentSeats || "TBD"), "Concurrent Agents: " + (deal.concurrent || "TBD"), "Virtual Agents: " + (deal.virtualAgents || "TBD"), "Monthly Volume: " + (deal.monthlyVolume || "TBD")] });
+  if (m && m.competition && m.competition.length > 0) {
+    sections.push({ heading: "Competitive Pricing Intel", items: m.competition.map(function(c) { return c.name + ": " + (c.strengths || "N/A") + " | Our advantage: " + (c.weaknesses || "TBD"); }) });
+  } else {
+    sections.push({ heading: "Competitive Pricing Intel", content: "No competitive pricing data captured yet. Update MEDDPICC analysis with competitor details." });
+  }
+  sections.push({ heading: "Discount Considerations", items: ["Current incumbent: " + (deal.currentVendor || "None documented"), "Strategic value: " + (m && m.metrics ? m.metrics.summary : "Not yet quantified"), "Multi-year commitment potential: Evaluate during negotiation", "Reference account potential: Assess with champion"] });
+  sections.push({ heading: "Commercial Next Steps", items: m && m.nextActions && m.nextActions.length > 0 ? m.nextActions.filter(function(a) { return a.toLowerCase().indexOf("pric") !== -1 || a.toLowerCase().indexOf("contract") !== -1 || a.toLowerCase().indexOf("proposal") !== -1; }).concat(["Finalize pricing proposal", "Internal discount review if needed"]) : ["Build pricing proposal", "Validate budget with Economic Buyer", "Submit for internal approval"] });
+  return sections;
+}
+
+
+
+function makeROI(deal) {
+  const m = deal.meddpicc;
+  const n = deal.name || "Customer";
+  const sm = getSalesMotion(deal);
+  const acv = m && m.acv || deal.acv || "TBD";
+  var sections = [];
+  sections.push({ heading: "ROI Analysis — " + n, content: "Return on Investment analysis for " + (deal.products || []).join(", ") + " deployment. ACV: " + acv });
+  if (m && m.metrics && m.metrics.summary) {
+    sections.push({ heading: "Quantified Business Value", content: m.metrics.summary, items: m.metrics.details || [] });
+  } else {
+    sections.push({ heading: "Target Business Value", items: sm.metrics.slice(0, 5) });
+  }
+  if (m && m.identifiedPain) {
+    var costOfInaction = m.identifiedPain.businessImpact || "Not yet quantified";
+    sections.push({ heading: "Cost of Inaction", content: "Current pain: " + m.identifiedPain.primary + ". Business impact of doing nothing: " + costOfInaction });
+  } else {
+    sections.push({ heading: "Cost of Inaction", items: ["Document current operational costs", "Quantify revenue at risk from status quo", "Calculate productivity losses with legacy tools"] });
+  }
+  sections.push({ heading: "Investment Summary", items: ["Annual Investment (ACV): " + acv, "Implementation & Services: TBD", "Total First-Year Investment: TBD", "Ongoing Annual Cost: " + acv] });
+  sections.push({ heading: "Expected Returns", items: ["Productivity Gains: Quantify agent efficiency improvement", "Cost Reduction: Legacy platform decommission savings", "Revenue Impact: Faster resolution = higher CSAT = retention", "Risk Mitigation: Compliance, uptime, security improvements"] });
+  sections.push({ heading: "Payback Timeline", items: ["Month 1-3: Implementation & migration", "Month 3-6: Ramp period, initial productivity gains", "Month 6-12: Full ROI realization begins", "Projected payback period: 6-9 months (validate with data)"] });
+  return sections;
+}
+
+function makeAccountPlan(deal) {
+  const m = deal.meddpicc;
+  const n = deal.name || "Customer";
+  const sm = getSalesMotion(deal);
+  const acv = m && m.acv || deal.acv || "TBD";
+  const prods = (deal.products || []).join(", ") || sm.category;
+  var sections = [];
+  sections.push({ heading: "Account Overview — " + n, content: "Strategic account plan for " + n + ". Products: " + prods + ". ACV: " + acv + ". Region: " + (deal.region || "TBD") + ". Vertical: " + (deal.vertical || "TBD") });
+  var champLine = m && m.champion && m.champion.name ? m.champion.name + " (" + (m.champion.title || "") + ")" : "TBD";
+  var ebLine = m && m.economicBuyer && m.economicBuyer.name ? m.economicBuyer.name + " (" + (m.economicBuyer.title || "") + ")" : "TBD";
+  sections.push({ heading: "Key Relationships", items: ["Champion: " + champLine, "Economic Buyer: " + ebLine, "Total Stakeholders Mapped: " + (m && m.stakeholders ? m.stakeholders.length : 0)] });
+  if (m && m.stakeholders && m.stakeholders.length > 0) {
+    sections.push({ heading: "Stakeholder Map", items: m.stakeholders.map(function(s) { return (s.name || "Unknown") + " (" + (s.title || "N/A") + ") — " + (s.role || "Influence TBD") + (s.sentiment ? " | Sentiment: " + s.sentiment : ""); }) });
+  }
+  sections.push({ heading: "Strategic Objectives", items: m && m.identifiedPain ? ["Primary Pain: " + m.identifiedPain.primary, "Business Impact: " + (m.identifiedPain.businessImpact || "TBD"), "Strategic Initiative: " + (m.identifiedPain.initiative || sm.category + " transformation")] : sm.painPoints.slice(0, 4).map(function(p) { return "Address: " + p; }) });
+  if (m && m.competition && m.competition.length > 0) {
+    sections.push({ heading: "Competitive Landscape", items: m.competition.map(function(c) { return c.name + " — Strengths: " + (c.strengths || "N/A") + " | Our Edge: " + (c.weaknesses || "TBD"); }) });
+  }
+  sections.push({ heading: "Whitespace & Expansion", items: ["Current deployment: " + prods, "Expansion opportunities: WFM, QM, Analytics, AI", "Cross-sell potential: Evaluate adjacent use cases", "Multi-year growth target: Define with account team"] });
+  sections.push({ heading: "Account Timeline & Milestones", items: m && m.nextActions && m.nextActions.length > 0 ? m.nextActions : ["Complete discovery and stakeholder mapping", "Deliver tailored demo / POC", "Build executive-level business case", "Navigate procurement and legal", "Close and launch implementation"] });
+  sections.push({ heading: "Risks & Mitigation", items: m && m.risks && m.risks.length > 0 ? m.risks : ["Identify and document deal risks during analysis", "Build mitigation plan for each risk", "Align with champion on risk communication strategy"] });
+  return sections;
+}// ââ Helpers âââââââââââââââââââââââââââââââââââââââââââââââââ
 const card = {
   background: "#fff",
   borderRadius: 8,
@@ -3858,6 +3935,24 @@ function ViewSOI({
     }));
   })));
 }
+// \u2500\u2500 Commercials View \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nfunction ViewCommercials({ deal, generated, docData, updateDocData }) {
+  if (!generated) return /*#__PURE__*/React.createElement(EmptyState, { label: "Commercials", name: deal.name, analyzed: !!deal.meddpicc });
+  var sections = docData || makeCommercials(deal);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#065f46,#1e293b)" }) }, /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#6ee7b7", margin: "0 0 4px" } }, deal.name, " Commercial Summary"), /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#a7f3d0", margin: 0 } }, "Pricing, Sizing & Deal Structure", deal.acv ? " \u2014 " + deal.acv : "")), /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#10b981", IconComp: IBarChart }));
+}
+
+// \u2500\u2500 ROI View \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nfunction ViewROI({ deal, generated, docData, updateDocData }) {
+  if (!generated) return /*#__PURE__*/React.createElement(EmptyState, { label: "ROI Analysis", name: deal.name, analyzed: !!deal.meddpicc });
+  var sections = docData || makeROI(deal);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#7c2d12,#1e293b)" }) }, /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#fdba74", margin: "0 0 4px" } }, deal.name, " ROI Analysis"), /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#fed7aa", margin: 0 } }, "Return on Investment & Business Case", deal.acv ? " \u2014 " + deal.acv : "")), /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#f97316", IconComp: IPercent }));
+}
+
+// \u2500\u2500 Account Plan View \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nfunction ViewAccountPlan({ deal, generated, docData, updateDocData }) {
+  if (!generated) return /*#__PURE__*/React.createElement(EmptyState, { label: "Account Plan", name: deal.name, analyzed: !!deal.meddpicc });
+  var sections = docData || makeAccountPlan(deal);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#1e3a5f,#0f172a)" }) }, /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#93c5fd", margin: "0 0 4px" } }, deal.name, " Account Plan"), /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#bfdbfe", margin: 0 } }, "Strategic Account Planning & Growth", deal.acv ? " \u2014 " + deal.acv : "")), /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#3b82f6", IconComp: IClipboard }));
+}
+
 function ViewHistory({
   deal,
   generated,
@@ -5464,6 +5559,21 @@ const DOCS = [{
   Icon: IDollar,
   View: ViewDiscountApproval
 }, {
+  key: "commercials",
+  label: "Commercials",
+  Icon: IBarChart,
+  View: ViewCommercials
+}, {
+  key: "roi",
+  label: "ROI",
+  Icon: IPercent,
+  View: ViewROI
+}, {
+  key: "acctplan",
+  label: "Account Plan",
+  Icon: IClipboard,
+  View: ViewAccountPlan
+}, {
   key: "hist",
   label: "History",
   Icon: IClock,
@@ -5781,7 +5891,7 @@ function App() {
       if (docKey === "soe") newData = makeSOE(deal);else if (docKey === "msp") newData = makeMSP(deal);else if (docKey === "disc") newData = makeDisc(deal);else if (docKey === "champ") newData = {
         letter: makeChampLetter(deal),
         bizValue: makeBizValue(deal)
-      };else if (docKey === "soi") newData = makeStakeholders(deal);else if (docKey === "timeline") newData = makeTimeline(deal);else if (docKey === "discount") newData = makeDiscountApproval(deal);else if (docKey === "hist") newData = makeHistory(deal);else if (docKey === "exec") newData = makeExecSummary(deal);
+      };else if (docKey === "soi") newData = makeStakeholders(deal);else if (docKey === "timeline") newData = makeTimeline(deal);else if (docKey === "discount") newData = makeDiscountApproval(deal);else if (docKey === "hist") newData = makeHistory(deal);else if (docKey === "exec") newData = makeExecSummary(deal);else if (docKey === "commercials") newData = makeCommercials(deal);else if (docKey === "roi") newData = makeROI(deal);else if (docKey === "acctplan") newData = makeAccountPlan(deal);
       if (newData) docData = {
         ...docData,
         [docKey]: newData
