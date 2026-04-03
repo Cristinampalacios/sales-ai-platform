@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Sales AI — Deal Intelligence Platform</title>
+<title>Sales AI â Deal Intelligence Platform</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8fafc;color:#1e293b;overflow-x:hidden}
@@ -329,7 +330,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 <script>
 try{
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
-// ── Inline SVG Icons ────────────────────────────────────────
+// ââ Inline SVG Icons ââââââââââââââââââââââââââââââââââââââââ
 const Icon = ({
   d,
   size = 16,
@@ -424,7 +425,7 @@ const IDollar = p => /*#__PURE__*/React.createElement(Icon, _extends({}, p, {
   d: ["M12 1v22", "M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"]
 }));
 
-// ── Product Sales Motion Engine ──────────────────────────────
+// ââ Product Sales Motion Engine ââââââââââââââââââââââââââââââ
 var SALES_MOTIONS = {
   "CXone": {
     category: "Contact Center",
@@ -547,10 +548,10 @@ function getMotionLabel(deal) {
   return sm.category;
 }
 
-// ── MEDDPICC Extraction Prompt ──────────────────────────────
-const MEDDPICC_PROMPT = "You are a top 1% enterprise sales analyst specializing in contact center CX, AI, and WFM deals for NiCE (NICE CXone) + Cognigy. Analyze ALL uploaded documents thoroughly. These are real deal files — meeting transcripts, call recordings, account overviews, emails from Salesforce.\n\nExtract structured MEDDPICC intelligence AND deal commercials. Be specific — use real names, real numbers, real quotes from the documents. Do NOT make up data. If something is not found, set it to null.\n\nCRITICAL: For the interactionTimeline, extract EVERY dated interaction you can find. Use exact date formats from the source.\n\nReturn ONLY valid JSON (no markdown, no explanation) with this exact structure:\n{\n  \"dealSummary\": \"2-3 sentence deal overview\",\n  \"dealCommercials\": {\n    \"acv\": \"annual contract value or null\",\n    \"tcv\": \"total contract value or null\",\n    \"contractTerm\": \"e.g. 3 years, 5 years, or null\",\n    \"closeDate\": \"target close date or null\",\n    \"goLiveDate\": \"target go-live date or null\",\n    \"products\": [\"NICE CXone\", \"Cognigy AI\", \"WFM\", \"QM\", \"Recording\", \"Analytics\", \"CXone Mpower\", \"Virtual Agents\", \"Agent Assist\", \"SmartReach\", \"Enlighten AI\", \"Autopilot\"],\n    \"agentSeats\": \"number of agent seats/licenses or null\",\n    \"concurrentUsers\": \"number of concurrent users or null\",\n    \"namedUsers\": \"number of named users or null\",\n    \"monthlyInteractions\": \"monthly interaction volume or null\",\n    \"virtualAgents\": \"number of AI/virtual agents or null\",\n    \"channels\": [\"voice\", \"chat\", \"email\", \"social\", \"SMS\", \"WhatsApp\"],\n    \"currentVendor\": \"incumbent platform vendor or null\",\n    \"currentContractExpiry\": \"when current contract expires or null\",\n    \"billingFrequency\": \"monthly|annual|upfront or null\",\n    \"deploymentModel\": \"cloud|hybrid|on-prem or null\",\n    \"region\": \"geographic region/countries or null\",\n    \"languages\": [\"languages needed for bot/IVR\"],\n    \"integrations\": [\"CRM, ERP, or other systems mentioned\"],\n    \"discount\": \"discount percentage discussed or null\",\n    \"professionalServices\": \"PS/implementation scope or null\",\n    \"expansionPotential\": \"upsell/cross-sell opportunities or null\"\n  },\n  \"metrics\": {\n    \"summary\": \"quantified business impact\",\n    \"details\": [\"specific metric 1\", \"specific metric 2\"]\n  },\n  \"economicBuyer\": {\n    \"name\": \"actual name from docs or null\",\n    \"title\": \"their title\",\n    \"notes\": \"what drives their decision\"\n  },\n  \"decisionCriteria\": [\"specific criteria they evaluate on\"],\n  \"decisionProcess\": {\n    \"steps\": [\"actual steps mentioned in docs\"],\n    \"timeline\": \"expected timeline\",\n    \"paperProcess\": \"procurement/legal steps if mentioned\"\n  },\n  \"identifiedPain\": {\n    \"primary\": \"the #1 pain point\",\n    \"secondary\": [\"other pain points\"],\n    \"businessImpact\": \"quantified impact of the pain\"\n  },\n  \"champion\": {\n    \"name\": \"actual champion name or null\",\n    \"title\": \"their title\",\n    \"whyTheyHelp\": \"what motivates them\",\n    \"influence\": \"their organizational influence\"\n  },\n  \"competition\": [\n    {\"name\": \"competitor name\", \"strengths\": \"their pitch\", \"weaknesses\": \"where we win\"}\n  ],\n  \"stakeholders\": [\n    {\"name\": \"real name\", \"role\": \"title\", \"influence\": \"Champion|Economic Buyer|Technical Evaluator|Gatekeeper|Coach|Blocker\", \"sentiment\": \"Strong Advocate|Supportive|Neutral|Skeptical|Opposed\", \"notes\": \"key detail from docs\"}\n  ],\n  \"interactionTimeline\": [\n    {\"date\": \"exact date from document (e.g. Mar 15, 2026)\", \"event\": \"what happened\", \"participants\": \"who was involved\", \"type\": \"meeting|call|email|milestone|document|decision|internal\", \"keyTakeaway\": \"most important outcome\"}\n  ],\n  \"keyDates\": {\n    \"targetClose\": \"date or null\",\n    \"goLive\": \"date or null\",\n    \"nextMeeting\": \"date or null\",\n    \"contractExpiry\": \"date or null\"\n  },\n  \"acv\": \"dollar amount or null\",\n  \"risks\": [\"specific deal risk from docs\"],\n  \"nextActions\": [\"specific next step from docs\"],\n  \"keyQuotes\": [\"verbatim quote from transcript that reveals pain/urgency\"]\n}\n\nIMPORTANT for dealCommercials.products: Only include products that are ACTUALLY mentioned or relevant to this deal. Common NiCE + Cognigy products: NICE CXone (core platform), Cognigy AI (conversational AI), WFM (Workforce Management), QM (Quality Management), Recording, Analytics, CXone Mpower, Virtual Agents, Agent Assist, SmartReach (outbound), Enlighten AI, Autopilot. Look for mentions of these or similar capabilities.";
+// ââ MEDDPICC Extraction Prompt ââââââââââââââââââââââââââââââ
+const MEDDPICC_PROMPT = "You are a top 1% enterprise sales analyst specializing in contact center CX, AI, and WFM deals for NiCE (NICE CXone) + Cognigy. Analyze ALL uploaded documents thoroughly. These are real deal files â meeting transcripts, call recordings, account overviews, emails from Salesforce.\n\nExtract structured MEDDPICC intelligence AND deal commercials. Be specific â use real names, real numbers, real quotes from the documents. Do NOT make up data. If something is not found, set it to null.\n\nCRITICAL: For the interactionTimeline, extract EVERY dated interaction you can find. Use exact date formats from the source.\n\nReturn ONLY valid JSON (no markdown, no explanation) with this exact structure:\n{\n  \"dealSummary\": \"2-3 sentence deal overview\",\n  \"dealCommercials\": {\n    \"acv\": \"annual contract value or null\",\n    \"tcv\": \"total contract value or null\",\n    \"contractTerm\": \"e.g. 3 years, 5 years, or null\",\n    \"closeDate\": \"target close date or null\",\n    \"goLiveDate\": \"target go-live date or null\",\n    \"products\": [\"NICE CXone\", \"Cognigy AI\", \"WFM\", \"QM\", \"Recording\", \"Analytics\", \"CXone Mpower\", \"Virtual Agents\", \"Agent Assist\", \"SmartReach\", \"Enlighten AI\", \"Autopilot\"],\n    \"agentSeats\": \"number of agent seats/licenses or null\",\n    \"concurrentUsers\": \"number of concurrent users or null\",\n    \"namedUsers\": \"number of named users or null\",\n    \"monthlyInteractions\": \"monthly interaction volume or null\",\n    \"virtualAgents\": \"number of AI/virtual agents or null\",\n    \"channels\": [\"voice\", \"chat\", \"email\", \"social\", \"SMS\", \"WhatsApp\"],\n    \"currentVendor\": \"incumbent platform vendor or null\",\n    \"currentContractExpiry\": \"when current contract expires or null\",\n    \"billingFrequency\": \"monthly|annual|upfront or null\",\n    \"deploymentModel\": \"cloud|hybrid|on-prem or null\",\n    \"region\": \"geographic region/countries or null\",\n    \"languages\": [\"languages needed for bot/IVR\"],\n    \"integrations\": [\"CRM, ERP, or other systems mentioned\"],\n    \"discount\": \"discount percentage discussed or null\",\n    \"professionalServices\": \"PS/implementation scope or null\",\n    \"expansionPotential\": \"upsell/cross-sell opportunities or null\"\n  },\n  \"metrics\": {\n    \"summary\": \"quantified business impact\",\n    \"details\": [\"specific metric 1\", \"specific metric 2\"]\n  },\n  \"economicBuyer\": {\n    \"name\": \"actual name from docs or null\",\n    \"title\": \"their title\",\n    \"notes\": \"what drives their decision\"\n  },\n  \"decisionCriteria\": [\"specific criteria they evaluate on\"],\n  \"decisionProcess\": {\n    \"steps\": [\"actual steps mentioned in docs\"],\n    \"timeline\": \"expected timeline\",\n    \"paperProcess\": \"procurement/legal steps if mentioned\"\n  },\n  \"identifiedPain\": {\n    \"primary\": \"the #1 pain point\",\n    \"secondary\": [\"other pain points\"],\n    \"businessImpact\": \"quantified impact of the pain\"\n  },\n  \"champion\": {\n    \"name\": \"actual champion name or null\",\n    \"title\": \"their title\",\n    \"whyTheyHelp\": \"what motivates them\",\n    \"influence\": \"their organizational influence\"\n  },\n  \"competition\": [\n    {\"name\": \"competitor name\", \"strengths\": \"their pitch\", \"weaknesses\": \"where we win\"}\n  ],\n  \"stakeholders\": [\n    {\"name\": \"real name\", \"role\": \"title\", \"influence\": \"Champion|Economic Buyer|Technical Evaluator|Gatekeeper|Coach|Blocker\", \"sentiment\": \"Strong Advocate|Supportive|Neutral|Skeptical|Opposed\", \"notes\": \"key detail from docs\"}\n  ],\n  \"interactionTimeline\": [\n    {\"date\": \"exact date from document (e.g. Mar 15, 2026)\", \"event\": \"what happened\", \"participants\": \"who was involved\", \"type\": \"meeting|call|email|milestone|document|decision|internal\", \"keyTakeaway\": \"most important outcome\"}\n  ],\n  \"keyDates\": {\n    \"targetClose\": \"date or null\",\n    \"goLive\": \"date or null\",\n    \"nextMeeting\": \"date or null\",\n    \"contractExpiry\": \"date or null\"\n  },\n  \"acv\": \"dollar amount or null\",\n  \"risks\": [\"specific deal risk from docs\"],\n  \"nextActions\": [\"specific next step from docs\"],\n  \"keyQuotes\": [\"verbatim quote from transcript that reveals pain/urgency\"]\n}\n\nIMPORTANT for dealCommercials.products: Only include products that are ACTUALLY mentioned or relevant to this deal. Common NiCE + Cognigy products: NICE CXone (core platform), Cognigy AI (conversational AI), WFM (Workforce Management), QM (Quality Management), Recording, Analytics, CXone Mpower, Virtual Agents, Agent Assist, SmartReach (outbound), Enlighten AI, Autopilot. Look for mentions of these or similar capabilities.";
 
-// ── Claude API Call ─────────────────────────────────────────
+// ââ Claude API Call âââââââââââââââââââââââââââââââââââââââââ
 async function callClaudeAPI(apiKey, fileContents, dealNotes, onStatus, dealProducts, dealUpdates) {
   const content = [];
   var totalBase64 = 0;
@@ -615,7 +616,7 @@ async function callClaudeAPI(apiKey, fileContents, dealNotes, onStatus, dealProd
     }).join("\n\n");
     content.push({
       type: "text",
-      text: "--- AE DEAL UPDATES (most recent first) ---\nThese are real-time updates logged by the account executive. Treat these as primary intelligence — they contain call notes, email summaries, champion feedback, competitive intel, and next steps.\n\n" + updatesText
+      text: "--- AE DEAL UPDATES (most recent first) ---\nThese are real-time updates logged by the account executive. Treat these as primary intelligence â they contain call notes, email summaries, champion feedback, competitive intel, and next steps.\n\n" + updatesText
     });
     if (onStatus) onStatus("Including " + dealUpdates.length + " deal update(s) as context...");
   }
@@ -705,7 +706,7 @@ async function callClaudeAPI(apiKey, fileContents, dealNotes, onStatus, dealProd
   }
 }
 
-// ── Read file content ───────────────────────────────────────
+// ââ Read file content âââââââââââââââââââââââââââââââââââââââ
 function readFileContent(file) {
   return new Promise(function (resolve, reject) {
     var isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
@@ -740,7 +741,7 @@ function readFileContent(file) {
   });
 }
 
-// ── Document Generators (MEDDPICC-powered) ──────────────────
+// ââ Document Generators (MEDDPICC-powered) ââââââââââââââââââ
 function makeSOE(deal) {
   const m = deal.meddpicc;
   const sm = getSalesMotion(deal);
@@ -1328,7 +1329,7 @@ function makeHistory(deal) {
   return events;
 }
 
-// ── Executive Summary Generator ─────────────────────────────
+// ââ Executive Summary Generator âââââââââââââââââââââââââââââ
 function makeExecSummary(deal) {
   const m = deal.meddpicc;
   const sm = getSalesMotion(deal);
@@ -1407,7 +1408,7 @@ function makeExecSummary(deal) {
   return sections;
 }
 
-// ── Timeline Generator ──────────────────────────────────────
+// ââ Timeline Generator ââââââââââââââââââââââââââââââââââââââ
 function makeTimeline(deal) {
   const m = deal.meddpicc;
   const n = deal.name || "account";
@@ -1547,7 +1548,7 @@ function makeTimeline(deal) {
   return events;
 }
 
-// ── Discount Approval Request Generator ─────────────────────
+// ââ Discount Approval Request Generator âââââââââââââââââââââ
 function makeDiscountApproval(deal) {
   const m = deal.meddpicc;
   const n = deal.name || "Customer";
@@ -1572,7 +1573,7 @@ function makeDiscountApproval(deal) {
   };
 }
 
-// ── Helpers ─────────────────────────────────────────────────
+// ââ Helpers âââââââââââââââââââââââââââââââââââââââââââââââââ
 const card = {
   background: "#fff",
   borderRadius: 8,
@@ -1655,7 +1656,7 @@ function EmptyState({
   }, analyzed ? "Deal intelligence extracted. Click Generate " + label + " to create this document from your MEDDPICC data." : "Upload source files (transcripts, PDFs) and click Analyze Deal to extract intelligence, then Generate " + label + "."));
 }
 
-// ── MEDDPICC Summary Component ──────────────────────────────
+// ââ MEDDPICC Summary Component ââââââââââââââââââââââââââââââ
 function MeddpiccSummary({
   deal
 }) {
@@ -1879,7 +1880,7 @@ function MeddpiccSummary({
   })));
 }
 
-// ── Editable cell helper ───────────────────────────────────
+// ââ Editable cell helper âââââââââââââââââââââââââââââââââââ
 function ECell({
   value,
   onChange,
@@ -1942,7 +1943,7 @@ function ECell({
   });
 }
 
-// ── Editable sections helper (MSP, Discovery, ExecSummary) ──
+// ââ Editable sections helper (MSP, Discovery, ExecSummary) ââ
 function EditableSections({
   sections,
   onChange,
@@ -2082,7 +2083,7 @@ function EditableSections({
   }));
 }
 
-// ── Views (all editable) ────────────────────────────────────
+// ââ Views (all editable) ââââââââââââââââââââââââââââââââââââ
 function ViewSOE({
   deal,
   generated,
@@ -3979,7 +3980,7 @@ function ViewHistory({
   })));
 }
 
-// ── Executive Summary View ─────────────────────────────────
+// ââ Executive Summary View âââââââââââââââââââââââââââââââââ
 function ViewExecSummary({
   deal,
   generated,
@@ -4017,7 +4018,7 @@ function ViewExecSummary({
   }));
 }
 
-// ── Timeline View ───────────────────────────────────────────
+// ââ Timeline View âââââââââââââââââââââââââââââââââââââââââââ
 function ViewTimeline({
   deal,
   generated,
@@ -4218,7 +4219,7 @@ function ViewTimeline({
   })));
 }
 
-// ── Discount Approval Request View ──────────────────────────
+// ââ Discount Approval Request View ââââââââââââââââââââââââââ
 function ViewDiscountApproval({
   deal,
   generated,
@@ -4410,7 +4411,7 @@ function ViewDiscountApproval({
   })));
 }
 
-// ── Deal Dashboard ────────────────────────────────────────
+// ââ Deal Dashboard ââââââââââââââââââââââââââââââââââââââââ
 function scoreMEDDPICC(m) {
   if (!m) return {
     total: 0,
@@ -5469,7 +5470,7 @@ const DOCS = [{
   View: ViewHistory
 }];
 
-// ── localStorage helpers ─────────────────────────────────────
+// ââ localStorage helpers âââââââââââââââââââââââââââââââââââââ
 const LS_KEY = "salesai_deals_v2";
 const API_KEY_KEY = "salesai_api_key";
 function loadAllDeals() {
@@ -5493,7 +5494,7 @@ function saveApiKey(k) {
   localStorage.setItem(API_KEY_KEY, k);
 }
 
-// ── App ──────────────────────────────────────────────────────
+// ââ App ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function App() {
   const {
     useState,
@@ -5503,7 +5504,7 @@ function App() {
   const initDeals = () => {
     const saved = loadAllDeals();
     if (Object.keys(saved).length > 0) return saved;
-    // First-time: seed with sample deals (no MEDDPICC yet — user needs to analyze)
+    // First-time: seed with sample deals (no MEDDPICC yet â user needs to analyze)
     return {
       hertz: {
         name: "Hertz",
@@ -5684,6 +5685,29 @@ function App() {
       return;
     }
     setAnalyzing(true);
+    // If a Drive folder is linked, fetch files from it first
+    if (deal.driveUrl && window.DriveIntegration) {
+      setAnalyzeStatus("Connecting to Google Drive...");
+      try {
+        const driveFiles = await window.DriveIntegration.fetchDriveFiles(deal.driveUrl, function(s) { setAnalyzeStatus(s); });
+        if (driveFiles && driveFiles.length > 0) {
+          if (!fileDataRef.current[dealKey]) fileDataRef.current[dealKey] = [];
+          const existingNames = new Set(fileDataRef.current[dealKey].map(function(f) { return f.name; }));
+          const newFiles = driveFiles.filter(function(f) { return !existingNames.has(f.name); });
+          if (newFiles.length > 0) {
+            fileDataRef.current[dealKey] = [...fileDataRef.current[dealKey], ...newFiles];
+            const newDocNames = newFiles.map(function(f) { return f.name; }).filter(function(n) { return !deal.docs.includes(n); });
+            if (newDocNames.length > 0) {
+              updateDeal({ docs: [...deal.docs, ...newDocNames] });
+            }
+          }
+          showToast("Loaded " + driveFiles.length + " file(s) from Google Drive");
+        }
+      } catch (err) {
+        console.error("Drive fetch error:", err);
+        showToast("Drive: " + err.message + " \u2014 analyzing uploaded files only");
+      }
+    }
     setAnalyzeStatus("Preparing " + files.length + " file(s) for analysis...");
     try {
       const result = await callClaudeAPI(apiKey, files, deal.notes, function (s) {
@@ -7012,6 +7036,187 @@ var ld=document.getElementById("app-loading");if(ld)ld.remove();
 document.getElementById("root").innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#dc2626">App Error</h2><p style="color:#64748b;margin:12px 0">'+e.message+'</p><button onclick="location.reload()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer">Reload</button></div>';
 }
 </script>
+<script>
+/* Google Drive Integration Layer */
+(function() {
+  'use strict';
+  const CLIENT_ID = '11285731141-i4rcs5pdj4u59c08ert8o21e8fgv02fg.apps.googleusercontent.com';
+  const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+  const SUPPORTED_MIME = {
+    'application/pdf': 'pdf',
+    'text/plain': 'text',
+    'text/csv': 'text',
+    'application/vnd.google-apps.document': 'gdoc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'text',
+    'text/html': 'text',
+    'text/markdown': 'text',
+    'application/json': 'text',
+    'application/rtf': 'text'
+  };
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+  let accessToken = null;
+  let tokenExpiry = 0;
+
+  function extractFolderId(url) {
+    if (!url) return null;
+    const patterns = [
+      /\/folders\/([a-zA-Z0-9_-]+)/,
+      /id=([a-zA-Z0-9_-]+)/,
+      /^([a-zA-Z0-9_-]{20,})$/
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  function isTokenValid() {
+    return accessToken && Date.now() < tokenExpiry;
+  }
+
+  function authenticate() {
+    return new Promise(function(resolve, reject) {
+      if (isTokenValid()) { resolve(accessToken); return; }
+      if (!window.google || !window.google.accounts) {
+        reject(new Error('Google Identity Services not loaded. Please refresh and try again.'));
+        return;
+      }
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: function(response) {
+          if (response.error) {
+            reject(new Error('Google auth failed: ' + (response.error_description || response.error)));
+            return;
+          }
+          accessToken = response.access_token;
+          tokenExpiry = Date.now() + (response.expires_in * 1000) - 60000;
+          resolve(accessToken);
+        },
+        error_callback: function(err) {
+          reject(new Error('Google auth error: ' + (err.message || 'popup blocked or closed')));
+        }
+      });
+      client.requestAccessToken({ prompt: '' });
+    });
+  }
+
+  async function driveApiFetch(endpoint, token) {
+    const resp = await fetch('https://www.googleapis.com/drive/v3/' + endpoint, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!resp.ok) {
+      const errText = await resp.text().catch(function() { return resp.statusText; });
+      throw new Error('Drive API error (' + resp.status + '): ' + errText);
+    }
+    return resp;
+  }
+
+  async function listFilesInFolder(folderId, token) {
+    const q = encodeURIComponent("'" + folderId + "' in parents and trashed = false");
+    const fields = encodeURIComponent('files(id,name,mimeType,size)');
+    const resp = await driveApiFetch('files?q=' + q + '&fields=' + fields + '&pageSize=50', token);
+    const data = await resp.json();
+    return data.files || [];
+  }
+
+  async function downloadFile(fileId, mimeType, fileName, token) {
+    if (mimeType === 'application/vnd.google-apps.document') {
+      const resp = await driveApiFetch('files/' + fileId + '/export?mimeType=text/plain', token);
+      const text = await resp.text();
+      return { name: fileName + '.txt', type: 'text/plain', text: text };
+    }
+    if (mimeType === 'application/vnd.google-apps.spreadsheet') {
+      const resp = await driveApiFetch('files/' + fileId + '/export?mimeType=text/csv', token);
+      const text = await resp.text();
+      return { name: fileName + '.csv', type: 'text/plain', text: text };
+    }
+    if (mimeType === 'application/vnd.google-apps.presentation') {
+      const resp = await driveApiFetch('files/' + fileId + '/export?mimeType=text/plain', token);
+      const text = await resp.text();
+      return { name: fileName + '.txt', type: 'text/plain', text: text };
+    }
+    if (mimeType === 'application/pdf') {
+      const resp = await fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!resp.ok) throw new Error('Failed to download ' + fileName);
+      const blob = await resp.blob();
+      return new Promise(function(resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          try {
+            const base64 = ev.target.result.split(',')[1];
+            resolve({ name: fileName, type: 'application/pdf', base64: base64 });
+          } catch(e) { reject(e); }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+    const resp = await fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!resp.ok) throw new Error('Failed to download ' + fileName);
+    const text = await resp.text();
+    return { name: fileName, type: 'text/plain', text: text };
+  }
+
+  async function fetchDriveFiles(driveUrl, onStatus) {
+    const folderId = extractFolderId(driveUrl);
+    if (!folderId) throw new Error('Could not extract folder ID from Drive URL');
+    onStatus = onStatus || function() {};
+    onStatus('Authenticating with Google Drive...');
+    const token = await authenticate();
+    onStatus('Listing files in Drive folder...');
+    const allFiles = await listFilesInFolder(folderId, token);
+    const supportedFiles = allFiles.filter(function(f) {
+      const isGoogleNative = f.mimeType.startsWith('application/vnd.google-apps.');
+      if (isGoogleNative) {
+        return ['application/vnd.google-apps.document',
+                'application/vnd.google-apps.spreadsheet',
+                'application/vnd.google-apps.presentation'].includes(f.mimeType);
+      }
+      return SUPPORTED_MIME.hasOwnProperty(f.mimeType);
+    }).filter(function(f) {
+      if (!f.mimeType.startsWith('application/vnd.google-apps.') && f.size && parseInt(f.size) > MAX_FILE_SIZE) {
+        console.warn('[Drive] Skipping large file:', f.name, f.size);
+        return false;
+      }
+      return true;
+    });
+    if (supportedFiles.length === 0) {
+      onStatus('No supported files found in Drive folder');
+      return [];
+    }
+    onStatus('Downloading ' + supportedFiles.length + ' file(s) from Drive...');
+    const results = [];
+    for (let i = 0; i < supportedFiles.length; i++) {
+      const f = supportedFiles[i];
+      onStatus('Downloading (' + (i + 1) + '/' + supportedFiles.length + '): ' + f.name);
+      try {
+        const content = await downloadFile(f.id, f.mimeType, f.name, token);
+        if (content) results.push(content);
+      } catch (err) {
+        console.error('[Drive] Failed to download', f.name, err);
+      }
+    }
+    onStatus('Downloaded ' + results.length + ' file(s) from Google Drive');
+    return results;
+  }
+
+  window.DriveIntegration = {
+    fetchDriveFiles: fetchDriveFiles,
+    authenticate: authenticate,
+    extractFolderId: extractFolderId,
+    isTokenValid: isTokenValid
+  };
+
+  console.log('[DriveIntegration] Google Drive integration layer loaded');
+})();
+</script>
 <script>/* Supabase Persistence Layer */
 /**
  * Supabase Persistence Layer for Sales AI App
@@ -7521,7 +7726,7 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
 </script>
 <script>/* Supabase Boot - Cloud Sync */
 /**
- * Supabase Boot Script — Injected AFTER the app code to monkey-patch
+ * Supabase Boot Script â Injected AFTER the app code to monkey-patch
  * localStorage functions with Supabase cloud persistence.
  *
  * This script:
@@ -7689,14 +7894,14 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
         color: '#991b1b',
         border: '1px solid #fca5a5',
         icon: '\u26A0\uFE0F',
-        text: 'Offline — Local Only'
+        text: 'Offline â Local Only'
       },
       error: {
         bg: '#fee2e2',
         color: '#991b1b',
         border: '1px solid #fca5a5',
         icon: '\u26A0\uFE0F',
-        text: 'Sync Error — Click to retry'
+        text: 'Sync Error â Click to retry'
       }
     };
 
