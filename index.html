@@ -3935,19 +3935,22 @@ function ViewSOI({
     }));
   })));
 }
-// \u2500\u2500 Commercials View \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nfunction ViewCommercials({ deal, generated, docData, updateDocData }) {
+// \u2500\u2500 Commercials View
+function ViewCommercials({ deal, generated, docData, updateDocData }) {
   if (!generated) return /*#__PURE__*/React.createElement(EmptyState, { label: "Commercials", name: deal.name, analyzed: !!deal.meddpicc });
   var sections = docData || makeCommercials(deal);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#065f46,#1e293b)" }) }, /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#6ee7b7", margin: "0 0 4px" } }, deal.name, " Commercial Summary"), /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#a7f3d0", margin: 0 } }, "Pricing, Sizing & Deal Structure", deal.acv ? " \u2014 " + deal.acv : "")), /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#10b981", IconComp: IBarChart }));
 }
 
-// \u2500\u2500 ROI View \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nfunction ViewROI({ deal, generated, docData, updateDocData }) {
+// \u2500\u2500 ROI View
+function ViewROI({ deal, generated, docData, updateDocData }) {
   if (!generated) return /*#__PURE__*/React.createElement(EmptyState, { label: "ROI Analysis", name: deal.name, analyzed: !!deal.meddpicc });
   var sections = docData || makeROI(deal);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#7c2d12,#1e293b)" }) }, /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#fdba74", margin: "0 0 4px" } }, deal.name, " ROI Analysis"), /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#fed7aa", margin: 0 } }, "Return on Investment & Business Case", deal.acv ? " \u2014 " + deal.acv : "")), /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#f97316", IconComp: IPercent }));
 }
 
-// \u2500\u2500 Account Plan View \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nfunction ViewAccountPlan({ deal, generated, docData, updateDocData }) {
+// \u2500\u2500 Account Plan View
+function ViewAccountPlan({ deal, generated, docData, updateDocData }) {
   if (!generated) return /*#__PURE__*/React.createElement(EmptyState, { label: "Account Plan", name: deal.name, analyzed: !!deal.meddpicc });
   var sections = docData || makeAccountPlan(deal);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#1e3a5f,#0f172a)" }) }, /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#93c5fd", margin: "0 0 4px" } }, deal.name, " Account Plan"), /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#bfdbfe", margin: 0 } }, "Strategic Account Planning & Growth", deal.acv ? " \u2014 " + deal.acv : "")), /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#3b82f6", IconComp: IClipboard }));
