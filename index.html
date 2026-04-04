@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Sales AI â Deal Intelligence Platform</title>
+<title>Sales AI Ã¢ÂÂ Deal Intelligence Platform</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -330,7 +330,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 <script>
 try{
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
-// ââ Inline SVG Icons ââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Inline SVG Icons Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 const Icon = ({
   d,
   size = 16,
@@ -434,7 +434,7 @@ const IClipboard = p => /*#__PURE__*/React.createElement(Icon, _extends({}, p, {
   d: ["M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2", "M15 2H9a1 1 0 00-1 1v1a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1z"]
 }));
 
-// ââ Product Sales Motion Engine ââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Product Sales Motion Engine Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 var SALES_MOTIONS = {
   "CXone": {
     category: "Contact Center",
@@ -557,10 +557,10 @@ function getMotionLabel(deal) {
   return sm.category;
 }
 
-// ââ MEDDPICC Extraction Prompt ââââââââââââââââââââââââââââââ
-const MEDDPICC_PROMPT = "You are a top 1% enterprise sales analyst specializing in contact center CX, AI, and WFM deals for NiCE (NICE CXone) + Cognigy. Analyze ALL uploaded documents thoroughly. These are real deal files â meeting transcripts, call recordings, account overviews, emails from Salesforce.\n\nExtract structured MEDDPICC intelligence AND deal commercials. Be specific â use real names, real numbers, real quotes from the documents. Do NOT make up data. If something is not found, set it to null.\n\nCRITICAL: For the interactionTimeline, extract EVERY dated interaction you can find. Use exact date formats from the source.\n\nReturn ONLY valid JSON (no markdown, no explanation) with this exact structure:\n{\n  \"dealSummary\": \"2-3 sentence deal overview\",\n  \"dealCommercials\": {\n    \"acv\": \"annual contract value or null\",\n    \"tcv\": \"total contract value or null\",\n    \"contractTerm\": \"e.g. 3 years, 5 years, or null\",\n    \"closeDate\": \"target close date or null\",\n    \"goLiveDate\": \"target go-live date or null\",\n    \"products\": [\"NICE CXone\", \"Cognigy AI\", \"WFM\", \"QM\", \"Recording\", \"Analytics\", \"CXone Mpower\", \"Virtual Agents\", \"Agent Assist\", \"SmartReach\", \"Enlighten AI\", \"Autopilot\"],\n    \"agentSeats\": \"number of agent seats/licenses or null\",\n    \"concurrentUsers\": \"number of concurrent users or null\",\n    \"namedUsers\": \"number of named users or null\",\n    \"monthlyInteractions\": \"monthly interaction volume or null\",\n    \"virtualAgents\": \"number of AI/virtual agents or null\",\n    \"channels\": [\"voice\", \"chat\", \"email\", \"social\", \"SMS\", \"WhatsApp\"],\n    \"currentVendor\": \"incumbent platform vendor or null\",\n    \"currentContractExpiry\": \"when current contract expires or null\",\n    \"billingFrequency\": \"monthly|annual|upfront or null\",\n    \"deploymentModel\": \"cloud|hybrid|on-prem or null\",\n    \"region\": \"geographic region/countries or null\",\n    \"languages\": [\"languages needed for bot/IVR\"],\n    \"integrations\": [\"CRM, ERP, or other systems mentioned\"],\n    \"discount\": \"discount percentage discussed or null\",\n    \"professionalServices\": \"PS/implementation scope or null\",\n    \"expansionPotential\": \"upsell/cross-sell opportunities or null\"\n  },\n  \"metrics\": {\n    \"summary\": \"quantified business impact\",\n    \"details\": [\"specific metric 1\", \"specific metric 2\"]\n  },\n  \"economicBuyer\": {\n    \"name\": \"actual name from docs or null\",\n    \"title\": \"their title\",\n    \"notes\": \"what drives their decision\"\n  },\n  \"decisionCriteria\": [\"specific criteria they evaluate on\"],\n  \"decisionProcess\": {\n    \"steps\": [\"actual steps mentioned in docs\"],\n    \"timeline\": \"expected timeline\",\n    \"paperProcess\": \"procurement/legal steps if mentioned\"\n  },\n  \"identifiedPain\": {\n    \"primary\": \"the #1 pain point\",\n    \"secondary\": [\"other pain points\"],\n    \"businessImpact\": \"quantified impact of the pain\"\n  },\n  \"champion\": {\n    \"name\": \"actual champion name or null\",\n    \"title\": \"their title\",\n    \"whyTheyHelp\": \"what motivates them\",\n    \"influence\": \"their organizational influence\"\n  },\n  \"competition\": [\n    {\"name\": \"competitor name\", \"strengths\": \"their pitch\", \"weaknesses\": \"where we win\"}\n  ],\n  \"stakeholders\": [\n    {\"name\": \"real name\", \"role\": \"title\", \"influence\": \"Champion|Economic Buyer|Technical Evaluator|Gatekeeper|Coach|Blocker\", \"sentiment\": \"Strong Advocate|Supportive|Neutral|Skeptical|Opposed\", \"notes\": \"key detail from docs\"}\n  ],\n  \"interactionTimeline\": [\n    {\"date\": \"exact date from document (e.g. Mar 15, 2026)\", \"event\": \"what happened\", \"participants\": \"who was involved\", \"type\": \"meeting|call|email|milestone|document|decision|internal\", \"keyTakeaway\": \"most important outcome\"}\n  ],\n  \"keyDates\": {\n    \"targetClose\": \"date or null\",\n    \"goLive\": \"date or null\",\n    \"nextMeeting\": \"date or null\",\n    \"contractExpiry\": \"date or null\"\n  },\n  \"acv\": \"dollar amount or null\",\n  \"risks\": [\"specific deal risk from docs\"],\n  \"nextActions\": [\"specific next step from docs\"],\n  \"keyQuotes\": [\"verbatim quote from transcript that reveals pain/urgency\"]\n}\n\nIMPORTANT for dealCommercials.products: Only include products that are ACTUALLY mentioned or relevant to this deal. Common NiCE + Cognigy products: NICE CXone (core platform), Cognigy AI (conversational AI), WFM (Workforce Management), QM (Quality Management), Recording, Analytics, CXone Mpower, Virtual Agents, Agent Assist, SmartReach (outbound), Enlighten AI, Autopilot. Look for mentions of these or similar capabilities.";
+// Ã¢ÂÂÃ¢ÂÂ MEDDPICC Extraction Prompt Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+const MEDDPICC_PROMPT = "You are a top 1% enterprise sales analyst specializing in contact center CX, AI, and WFM deals for NiCE (NICE CXone) + Cognigy. Analyze ALL uploaded documents thoroughly. These are real deal files Ã¢ÂÂ meeting transcripts, call recordings, account overviews, emails from Salesforce.\n\nExtract structured MEDDPICC intelligence AND deal commercials. Be specific Ã¢ÂÂ use real names, real numbers, real quotes from the documents. Do NOT make up data. If something is not found, set it to null.\n\nCRITICAL: For the interactionTimeline, extract EVERY dated interaction you can find. Use exact date formats from the source.\n\nReturn ONLY valid JSON (no markdown, no explanation) with this exact structure:\n{\n  \"dealSummary\": \"2-3 sentence deal overview\",\n  \"dealCommercials\": {\n    \"acv\": \"annual contract value or null\",\n    \"tcv\": \"total contract value or null\",\n    \"contractTerm\": \"e.g. 3 years, 5 years, or null\",\n    \"closeDate\": \"target close date or null\",\n    \"goLiveDate\": \"target go-live date or null\",\n    \"products\": [\"NICE CXone\", \"Cognigy AI\", \"WFM\", \"QM\", \"Recording\", \"Analytics\", \"CXone Mpower\", \"Virtual Agents\", \"Agent Assist\", \"SmartReach\", \"Enlighten AI\", \"Autopilot\"],\n    \"agentSeats\": \"number of agent seats/licenses or null\",\n    \"concurrentUsers\": \"number of concurrent users or null\",\n    \"namedUsers\": \"number of named users or null\",\n    \"monthlyInteractions\": \"monthly interaction volume or null\",\n    \"virtualAgents\": \"number of AI/virtual agents or null\",\n    \"channels\": [\"voice\", \"chat\", \"email\", \"social\", \"SMS\", \"WhatsApp\"],\n    \"currentVendor\": \"incumbent platform vendor or null\",\n    \"currentContractExpiry\": \"when current contract expires or null\",\n    \"billingFrequency\": \"monthly|annual|upfront or null\",\n    \"deploymentModel\": \"cloud|hybrid|on-prem or null\",\n    \"region\": \"geographic region/countries or null\",\n    \"languages\": [\"languages needed for bot/IVR\"],\n    \"integrations\": [\"CRM, ERP, or other systems mentioned\"],\n    \"discount\": \"discount percentage discussed or null\",\n    \"professionalServices\": \"PS/implementation scope or null\",\n    \"expansionPotential\": \"upsell/cross-sell opportunities or null\"\n  },\n  \"metrics\": {\n    \"summary\": \"quantified business impact\",\n    \"details\": [\"specific metric 1\", \"specific metric 2\"]\n  },\n  \"economicBuyer\": {\n    \"name\": \"actual name from docs or null\",\n    \"title\": \"their title\",\n    \"notes\": \"what drives their decision\"\n  },\n  \"decisionCriteria\": [\"specific criteria they evaluate on\"],\n  \"decisionProcess\": {\n    \"steps\": [\"actual steps mentioned in docs\"],\n    \"timeline\": \"expected timeline\",\n    \"paperProcess\": \"procurement/legal steps if mentioned\"\n  },\n  \"identifiedPain\": {\n    \"primary\": \"the #1 pain point\",\n    \"secondary\": [\"other pain points\"],\n    \"businessImpact\": \"quantified impact of the pain\"\n  },\n  \"champion\": {\n    \"name\": \"actual champion name or null\",\n    \"title\": \"their title\",\n    \"whyTheyHelp\": \"what motivates them\",\n    \"influence\": \"their organizational influence\"\n  },\n  \"competition\": [\n    {\"name\": \"competitor name\", \"strengths\": \"their pitch\", \"weaknesses\": \"where we win\"}\n  ],\n  \"stakeholders\": [\n    {\"name\": \"real name\", \"role\": \"title\", \"influence\": \"Champion|Economic Buyer|Technical Evaluator|Gatekeeper|Coach|Blocker\", \"sentiment\": \"Strong Advocate|Supportive|Neutral|Skeptical|Opposed\", \"notes\": \"key detail from docs\"}\n  ],\n  \"interactionTimeline\": [\n    {\"date\": \"exact date from document (e.g. Mar 15, 2026)\", \"event\": \"what happened\", \"participants\": \"who was involved\", \"type\": \"meeting|call|email|milestone|document|decision|internal\", \"keyTakeaway\": \"most important outcome\"}\n  ],\n  \"keyDates\": {\n    \"targetClose\": \"date or null\",\n    \"goLive\": \"date or null\",\n    \"nextMeeting\": \"date or null\",\n    \"contractExpiry\": \"date or null\"\n  },\n  \"acv\": \"dollar amount or null\",\n  \"risks\": [\"specific deal risk from docs\"],\n  \"nextActions\": [\"specific next step from docs\"],\n  \"keyQuotes\": [\"verbatim quote from transcript that reveals pain/urgency\"]\n}\n\nIMPORTANT for dealCommercials.products: Only include products that are ACTUALLY mentioned or relevant to this deal. Common NiCE + Cognigy products: NICE CXone (core platform), Cognigy AI (conversational AI), WFM (Workforce Management), QM (Quality Management), Recording, Analytics, CXone Mpower, Virtual Agents, Agent Assist, SmartReach (outbound), Enlighten AI, Autopilot. Look for mentions of these or similar capabilities.";
 
-// ââ Claude API Call âââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Claude API Call Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 async function callClaudeAPI(apiKey, fileContents, dealNotes, onStatus, dealProducts, dealUpdates) {
   const content = [];
   var totalBase64 = 0;
@@ -625,7 +625,7 @@ async function callClaudeAPI(apiKey, fileContents, dealNotes, onStatus, dealProd
     }).join("\n\n");
     content.push({
       type: "text",
-      text: "--- AE DEAL UPDATES (most recent first) ---\nThese are real-time updates logged by the account executive. Treat these as primary intelligence â they contain call notes, email summaries, champion feedback, competitive intel, and next steps.\n\n" + updatesText
+      text: "--- AE DEAL UPDATES (most recent first) ---\nThese are real-time updates logged by the account executive. Treat these as primary intelligence Ã¢ÂÂ they contain call notes, email summaries, champion feedback, competitive intel, and next steps.\n\n" + updatesText
     });
     if (onStatus) onStatus("Including " + dealUpdates.length + " deal update(s) as context...");
   }
@@ -715,7 +715,7 @@ async function callClaudeAPI(apiKey, fileContents, dealNotes, onStatus, dealProd
   }
 }
 
-// ââ Read file content âââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Read file content Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function readFileContent(file) {
   return new Promise(function (resolve, reject) {
     var isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
@@ -750,7 +750,7 @@ function readFileContent(file) {
   });
 }
 
-// ââ Document Generators (MEDDPICC-powered) ââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Document Generators (MEDDPICC-powered) Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function makeSOE(deal) {
   const m = deal.meddpicc;
   const sm = getSalesMotion(deal);
@@ -1338,7 +1338,7 @@ function makeHistory(deal) {
   return events;
 }
 
-// ââ Executive Summary Generator âââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Executive Summary Generator Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function makeExecSummary(deal) {
   const m = deal.meddpicc;
   const sm = getSalesMotion(deal);
@@ -1417,7 +1417,7 @@ function makeExecSummary(deal) {
   return sections;
 }
 
-// ââ Timeline Generator ââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Timeline Generator Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function makeTimeline(deal) {
   const m = deal.meddpicc;
   const n = deal.name || "account";
@@ -1557,7 +1557,7 @@ function makeTimeline(deal) {
   return events;
 }
 
-// ââ Discount Approval Request Generator âââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Discount Approval Request Generator Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function makeDiscountApproval(deal) {
   const m = deal.meddpicc;
   const n = deal.name || "Customer";
@@ -1610,7 +1610,7 @@ function makeROI(deal) {
   const sm = getSalesMotion(deal);
   const acv = m && m.acv || deal.acv || "TBD";
   var sections = [];
-  sections.push({ heading: "ROI Analysis — " + n, content: "Return on Investment analysis for " + (deal.products || []).join(", ") + " deployment. ACV: " + acv });
+  sections.push({ heading: "ROI Analysis â " + n, content: "Return on Investment analysis for " + (deal.products || []).join(", ") + " deployment. ACV: " + acv });
   if (m && m.metrics && m.metrics.summary) {
     sections.push({ heading: "Quantified Business Value", content: m.metrics.summary, items: m.metrics.details || [] });
   } else {
@@ -1635,22 +1635,22 @@ function makeAccountPlan(deal) {
   const acv = m && m.acv || deal.acv || "TBD";
   const prods = (deal.products || []).join(", ") || sm.category;
   var sections = [];
-  sections.push({ heading: "Account Overview — " + n, content: "Strategic account plan for " + n + ". Products: " + prods + ". ACV: " + acv + ". Region: " + (deal.region || "TBD") + ". Vertical: " + (deal.vertical || "TBD") });
+  sections.push({ heading: "Account Overview â " + n, content: "Strategic account plan for " + n + ". Products: " + prods + ". ACV: " + acv + ". Region: " + (deal.region || "TBD") + ". Vertical: " + (deal.vertical || "TBD") });
   var champLine = m && m.champion && m.champion.name ? m.champion.name + " (" + (m.champion.title || "") + ")" : "TBD";
   var ebLine = m && m.economicBuyer && m.economicBuyer.name ? m.economicBuyer.name + " (" + (m.economicBuyer.title || "") + ")" : "TBD";
   sections.push({ heading: "Key Relationships", items: ["Champion: " + champLine, "Economic Buyer: " + ebLine, "Total Stakeholders Mapped: " + (m && m.stakeholders ? m.stakeholders.length : 0)] });
   if (m && m.stakeholders && m.stakeholders.length > 0) {
-    sections.push({ heading: "Stakeholder Map", items: m.stakeholders.map(function(s) { return (s.name || "Unknown") + " (" + (s.title || "N/A") + ") — " + (s.role || "Influence TBD") + (s.sentiment ? " | Sentiment: " + s.sentiment : ""); }) });
+    sections.push({ heading: "Stakeholder Map", items: m.stakeholders.map(function(s) { return (s.name || "Unknown") + " (" + (s.title || "N/A") + ") â " + (s.role || "Influence TBD") + (s.sentiment ? " | Sentiment: " + s.sentiment : ""); }) });
   }
   sections.push({ heading: "Strategic Objectives", items: m && m.identifiedPain ? ["Primary Pain: " + m.identifiedPain.primary, "Business Impact: " + (m.identifiedPain.businessImpact || "TBD"), "Strategic Initiative: " + (m.identifiedPain.initiative || sm.category + " transformation")] : sm.painPoints.slice(0, 4).map(function(p) { return "Address: " + p; }) });
   if (m && m.competition && m.competition.length > 0) {
-    sections.push({ heading: "Competitive Landscape", items: m.competition.map(function(c) { return c.name + " — Strengths: " + (c.strengths || "N/A") + " | Our Edge: " + (c.weaknesses || "TBD"); }) });
+    sections.push({ heading: "Competitive Landscape", items: m.competition.map(function(c) { return c.name + " â Strengths: " + (c.strengths || "N/A") + " | Our Edge: " + (c.weaknesses || "TBD"); }) });
   }
   sections.push({ heading: "Whitespace & Expansion", items: ["Current deployment: " + prods, "Expansion opportunities: WFM, QM, Analytics, AI", "Cross-sell potential: Evaluate adjacent use cases", "Multi-year growth target: Define with account team"] });
   sections.push({ heading: "Account Timeline & Milestones", items: m && m.nextActions && m.nextActions.length > 0 ? m.nextActions : ["Complete discovery and stakeholder mapping", "Deliver tailored demo / POC", "Build executive-level business case", "Navigate procurement and legal", "Close and launch implementation"] });
   sections.push({ heading: "Risks & Mitigation", items: m && m.risks && m.risks.length > 0 ? m.risks : ["Identify and document deal risks during analysis", "Build mitigation plan for each risk", "Align with champion on risk communication strategy"] });
   return sections;
-}// ââ Helpers âââââââââââââââââââââââââââââââââââââââââââââââââ
+}// Ã¢ÂÂÃ¢ÂÂ Helpers Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 const card = {
   background: "#fff",
   borderRadius: 8,
@@ -1733,7 +1733,7 @@ function EmptyState({
   }, analyzed ? "Deal intelligence extracted. Click Generate " + label + " to create this document from your MEDDPICC data." : "Upload source files (transcripts, PDFs) and click Analyze Deal to extract intelligence, then Generate " + label + "."));
 }
 
-// ââ MEDDPICC Summary Component ââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ MEDDPICC Summary Component Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function MeddpiccSummary({
   deal
 }) {
@@ -1957,7 +1957,7 @@ function MeddpiccSummary({
   })));
 }
 
-// ââ Editable cell helper âââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Editable cell helper Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function ECell({
   value,
   onChange,
@@ -2020,7 +2020,7 @@ function ECell({
   });
 }
 
-// ââ Editable sections helper (MSP, Discovery, ExecSummary) ââ
+// Ã¢ÂÂÃ¢ÂÂ Editable sections helper (MSP, Discovery, ExecSummary) Ã¢ÂÂÃ¢ÂÂ
 function EditableSections({
   sections,
   onChange,
@@ -2160,7 +2160,7 @@ function EditableSections({
   }));
 }
 
-// ââ Views (all editable) ââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Views (all editable) Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function ViewSOE({
   deal,
   generated,
@@ -4078,7 +4078,7 @@ function ViewHistory({
   })));
 }
 
-// ââ Executive Summary View âââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Executive Summary View Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function ViewExecSummary({
   deal,
   generated,
@@ -4116,7 +4116,7 @@ function ViewExecSummary({
   }));
 }
 
-// ââ Timeline View âââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Timeline View Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function ViewTimeline({
   deal,
   generated,
@@ -4317,7 +4317,7 @@ function ViewTimeline({
   })));
 }
 
-// ââ Discount Approval Request View ââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Discount Approval Request View Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function ViewDiscountApproval({
   deal,
   generated,
@@ -4509,7 +4509,7 @@ function ViewDiscountApproval({
   })));
 }
 
-// ââ Deal Dashboard ââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Deal Dashboard Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function scoreMEDDPICC(m) {
   if (!m) return {
     total: 0,
@@ -5583,7 +5583,7 @@ const DOCS = [{
   View: ViewHistory
 }];
 
-// ââ localStorage helpers âââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ localStorage helpers Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 const LS_KEY = "salesai_deals_v2";
 const API_KEY_KEY = "salesai_api_key";
 function loadAllDeals() {
@@ -5607,7 +5607,7 @@ function saveApiKey(k) {
   localStorage.setItem(API_KEY_KEY, k);
 }
 
-// ââ App ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ App Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function App() {
   const {
     useState,
@@ -5617,7 +5617,7 @@ function App() {
   const initDeals = () => {
     const saved = loadAllDeals();
     if (Object.keys(saved).length > 0) return saved;
-    // First-time: seed with sample deals (no MEDDPICC yet â user needs to analyze)
+    // First-time: seed with sample deals (no MEDDPICC yet Ã¢ÂÂ user needs to analyze)
     return {
       hertz: {
         name: "Hertz",
@@ -5685,6 +5685,8 @@ function App() {
     updates: []
   };
   const deal = dealKey ? allDeals[dealKey] || emptyDeal : emptyDeal;
+window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDeals:allDeals,fileDataRef:fileDataRef};
+
   useEffect(function () {
     saveAllDeals(allDeals);
   }, [allDeals]);
@@ -7839,7 +7841,7 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
 </script>
 <script>/* Supabase Boot - Cloud Sync */
 /**
- * Supabase Boot Script â Injected AFTER the app code to monkey-patch
+ * Supabase Boot Script Ã¢ÂÂ Injected AFTER the app code to monkey-patch
  * localStorage functions with Supabase cloud persistence.
  *
  * This script:
@@ -8007,14 +8009,14 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
         color: '#991b1b',
         border: '1px solid #fca5a5',
         icon: '\u26A0\uFE0F',
-        text: 'Offline â Local Only'
+        text: 'Offline Ã¢ÂÂ Local Only'
       },
       error: {
         bg: '#fee2e2',
         color: '#991b1b',
         border: '1px solid #fca5a5',
         icon: '\u26A0\uFE0F',
-        text: 'Sync Error â Click to retry'
+        text: 'Sync Error Ã¢ÂÂ Click to retry'
       }
     };
 
@@ -8029,5 +8031,128 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
   boot();
 })();
 </script>
+
+
+<div id="chat-root"></div>
+<script>
+(function(){
+function buildDealContext(){
+  var ctx=window._chatContext;
+  if(!ctx||!ctx.deal) return "No deal selected.";
+  var d=ctx.deal;
+  var out="Deal: "+d.name+"\nCompany: "+d.company+"\nValue: $"+(d.value||0).toLocaleString()+"\nStage: "+(d.stage||"Unknown")+"\nClose: "+(d.closeDate||"TBD")+"\n\n";
+  if(d.meddpicc){
+    out+="MEDDPICC Analysis:\n";
+    var m=d.meddpicc;
+    if(m.metrics) out+="Metrics: "+m.metrics.details+"\n";
+    if(m.economicBuyer) out+="Economic Buyer: "+m.economicBuyer.details+"\n";
+    if(m.decisionCriteria) out+="Decision Criteria: "+m.decisionCriteria.details+"\n";
+    if(m.decisionProcess) out+="Decision Process: "+m.decisionProcess.details+"\n";
+    if(m.paperProcess) out+="Paper Process: "+m.paperProcess.details+"\n";
+    if(m.implainPain) out+="Identified Pain: "+m.implainPain.details+"\n";
+    if(m.champion) out+="Champion: "+m.champion.details+"\n";
+    if(m.competition) out+="Competition: "+m.competition.details+"\n";
+  }
+  if(d.updates&&d.updates.length){
+    out+="\nRecent Updates:\n";
+    d.updates.slice(0,5).forEach(function(u){out+=u.date+" - "+u.text+"\n";});
+  }
+  return out;
+}
+
+function sendToClaudeChat(msgs,onChunk,onDone){
+  var ctx=window._chatContext;
+  var k=ctx&&ctx.apiKey?ctx.apiKey:"";
+  if(!k){onDone("Please add your Claude API key in Settings first.");return;}
+  var body=JSON.stringify({
+    model:"claude-sonnet-4-20250514",
+    max_tokens:1024,
+    system:"You are a strategic enterprise sales AI assistant for NiCE and Cognigy. You help AEs analyze deals, coach on MEDDPICC methodology, surface risks, and provide actionable recommendations. Be concise and direct. Here is the current deal context:\n\n"+buildDealContext(),
+    messages:msgs
+  });
+  fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":k,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:body
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.error){onDone("Error: "+(data.error.message||"Unknown error"));return;}
+    var txt=data.content&&data.content[0]?data.content[0].text:"No response";
+    onDone(txt);
+  }).catch(function(e){onDone("Error: "+e.message);});
+}
+
+var useState=React.useState,useRef=React.useRef,useEffect=React.useEffect;
+
+function ChatBubble(){
+  var _o=useState(false),open=_o[0],setOpen=_o[1];
+  var _m=useState([]),msgs=_m[0],setMsgs=_m[1];
+  var _i=useState(""),input=_i[0],setInput=_i[1];
+  var _l=useState(false),loading=_l[0],setLoading=_l[1];
+  var listRef=useRef(null);
+
+  useEffect(function(){if(listRef.current)listRef.current.scrollTop=listRef.current.scrollHeight;},[msgs]);
+
+  function send(){
+    if(!input.trim()||loading)return;
+    var userMsg=input.trim();
+    setInput("");
+    var newMsgs=msgs.concat([{role:"user",content:userMsg}]);
+    setMsgs(newMsgs);
+    setLoading(true);
+    var apiMsgs=newMsgs.map(function(m){return{role:m.role,content:m.content};});
+    sendToClaudeChat(apiMsgs,null,function(txt){
+      setMsgs(function(prev){return prev.concat([{role:"assistant",content:txt}]);});
+      setLoading(false);
+    });
+  }
+
+  var ctx=window._chatContext;
+  var dealName=ctx&&ctx.deal?ctx.deal.name:"No Deal Selected";
+
+  if(!open){
+    return React.createElement("div",{onClick:function(){setOpen(true);},style:{position:"fixed",bottom:"24px",right:"24px",width:"56px",height:"56px",borderRadius:"50%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",boxShadow:"0 4px 20px rgba(99,102,241,0.4)",zIndex:9999,transition:"transform 0.2s"}},
+      React.createElement("svg",{width:"24",height:"24",fill:"none",stroke:"white",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round",viewBox:"0 0 24 24"},
+        React.createElement("path",{d:"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"})
+      )
+    );
+  }
+
+  return React.createElement("div",{style:{position:"fixed",bottom:"24px",right:"24px",width:"380px",height:"520px",borderRadius:"16px",background:"#1e1e2e",border:"1px solid rgba(99,102,241,0.3)",display:"flex",flexDirection:"column",zIndex:9999,boxShadow:"0 8px 32px rgba(0,0,0,0.4)",overflow:"hidden"}},
+    React.createElement("div",{style:{padding:"14px 16px",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"space-between"}},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},
+        React.createElement("svg",{width:"18",height:"18",fill:"none",stroke:"white",strokeWidth:"2",viewBox:"0 0 24 24"},React.createElement("path",{d:"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"})),
+        React.createElement("span",{style:{color:"white",fontWeight:"600",fontSize:"14px"}},"Deal AI Assistant")
+      ),
+      React.createElement("div",{onClick:function(){setOpen(false);},style:{cursor:"pointer",color:"white",fontSize:"18px",lineHeight:"1"}},"\u2715")
+    ),
+    React.createElement("div",{style:{padding:"8px 16px",background:"rgba(99,102,241,0.1)",borderBottom:"1px solid rgba(99,102,241,0.2)",fontSize:"12px",color:"#a5b4fc"}},"Context: ",React.createElement("strong",null,dealName)),
+    React.createElement("div",{ref:listRef,style:{flex:1,overflowY:"auto",padding:"12px 16px",display:"flex",flexDirection:"column",gap:"10px"}},
+      msgs.length===0?
+        React.createElement("div",{style:{textAlign:"center",color:"#6b7280",fontSize:"13px",marginTop:"40px"}},
+          React.createElement("div",{style:{fontSize:"32px",marginBottom:"12px"}},"\uD83E\uDD16"),
+          React.createElement("div",{style:{fontWeight:"500",marginBottom:"4px",color:"#9ca3af"}},"Ask me anything about this deal"),
+          React.createElement("div",{style:{fontSize:"12px"}},"MEDDPICC analysis, risks, next steps, coaching...")
+        )
+      :
+      msgs.map(function(m,i){
+        var isU=m.role==="user";
+        return React.createElement("div",{key:i,style:{alignSelf:isU?"flex-end":"flex-start",maxWidth:"85%"}},
+          React.createElement("div",{style:{padding:"10px 14px",borderRadius:isU?"14px 14px 4px 14px":"14px 14px 14px 4px",background:isU?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(255,255,255,0.08)",color:isU?"white":"#e5e7eb",fontSize:"13px",lineHeight:"1.5",whiteSpace:"pre-wrap"}},m.content)
+        );
+      }),
+      loading?React.createElement("div",{style:{alignSelf:"flex-start",padding:"10px 14px",borderRadius:"14px",background:"rgba(255,255,255,0.08)",color:"#9ca3af",fontSize:"13px"}},"Thinking..."):null
+    ),
+    React.createElement("div",{style:{padding:"12px",borderTop:"1px solid rgba(255,255,255,0.1)",display:"flex",gap:"8px"}},
+      React.createElement("input",{value:input,onChange:function(e){setInput(e.target.value);},onKeyDown:function(e){if(e.key==="Enter")send();},placeholder:"Ask about this deal...",style:{flex:1,padding:"10px 14px",borderRadius:"10px",border:"1px solid rgba(99,102,241,0.3)",background:"rgba(255,255,255,0.06)",color:"white",fontSize:"13px",outline:"none"}}),
+      React.createElement("button",{onClick:send,disabled:loading||!input.trim(),style:{padding:"10px 14px",borderRadius:"10px",border:"none",background:loading||!input.trim()?"rgba(99,102,241,0.3)":"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"white",cursor:loading?"default":"pointer",fontSize:"13px",fontWeight:"600"}},"Send")
+    )
+  );
+}
+
+var chatRoot=document.getElementById("chat-root");
+if(chatRoot){ReactDOM.render(React.createElement(ChatBubble),chatRoot);}
+})();
+</script>
+
 </body>
 </html>
