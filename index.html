@@ -3644,15 +3644,14 @@ function ViewDiscovery({
 }) {
   var _tab = React.useState("doc"), subTab = _tab[0], setSubTab = _tab[1];
   var discTabs = [{key:"doc",label:"Discovery Doc"},{key:"techstack",label:"Current Tech Stack"},{key:"sehandoff",label:"SE Hand-off"}];
-  if (!generated) return React.createElement(EmptyState, {label:"Discovery Document",name:deal.name});
-  var sections = docData && docData.sections ? docData.sections : makeDisc(deal);
+  var sections = generated && (docData && docData.sections ? docData.sections : makeDisc(deal));
   return React.createElement("div", null,
     React.createElement("div", {style:{background:"linear-gradient(135deg,#1e3a5f,#0f172a)",padding:"28px 32px",borderRadius:"12px 12px 0 0"}},
       React.createElement("h2", {style:{fontSize:20,fontWeight:800,color:"#93c5fd",margin:"0 0 4px"}}, deal.name, " Discovery Document"),
       React.createElement("p", {style:{fontSize:13,color:"#cbd5e1",margin:0}}, "MEDDPICC Intelligence & Pain Point Analysis")
     ),
     React.createElement(SubTabs, {tabs:discTabs, active:subTab, onChange:setSubTab, accentColor:"#ef4444"}),
-    subTab === "doc" ? React.createElement(EditableSections, {sections:sections, onChange:updateDocData, accentColor:"#ef4444", IconComp:ISearch})
+    subTab === "doc" ? (!generated ? React.createElement(EmptyState, {label:"Discovery Document",name:deal.name,analyzed:!!deal.meddpicc}) : React.createElement(EditableSections, {sections:sections, onChange:updateDocData, accentColor:"#ef4444", IconComp:ISearch}))
     : subTab === "techstack" ? React.createElement(PlaceholderPanel, {title:"Current Tech Stack", subtitle:"Document the customer current technology environment, integrations, and infrastructure to inform solution design and migration planning.", icon:"\uD83D\uDCBB"})
     : React.createElement(PlaceholderPanel, {title:"SE Hand-off", subtitle:"Capture technical requirements, environment details, and key findings to enable a seamless handoff to the Solutions Engineering team.", icon:"\uD83E\uDD1D"})
   );
