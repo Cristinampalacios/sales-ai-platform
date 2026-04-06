@@ -3997,11 +3997,122 @@ function ViewSOI({
   })));
 }
 // \u2500\u2500 Commercials View
+var QUOTE_PROMPT = "You are analyzing a sales quote/proposal document for a contact center CX, AI, and WFM deal. Extract ALL financial and sizing data. This quote is the SOURCE OF TRUTH.\nReturn ONLY valid JSON:\n{\n  \"acv\": \"annual value or null\",\n  \"tcv\": \"total value or null\",\n  \"contractTerm\": \"duration or null\",\n  \"seats\": \"named users or null\",\n  \"concurrent\": \"concurrent users or null\",\n  \"monthlyVol\": \"monthly volume or null\",\n  \"virtualAgents\": \"AI agents or null\",\n  \"products\": [\"product names\"],\n  \"lineItems\": [{\"description\":\"name\",\"quantity\":\"qty\",\"unitPrice\":\"price\",\"total\":\"total\"}],\n  \"discount\": \"discount or null\",\n  \"closeDate\": \"date or null\",\n  \"goLive\": \"date or null\",\n  \"deploy\": \"model or null\",\n  \"region\": \"region or null\",\n  \"incumbent\": \"vendor or null\"\n}\nExtract exact numbers. These override all previous estimates.";
+
+function QuoteUploadPanel({deal, updateDeal}) {
+  var _f = React.useState([]), files = _f[0], setFiles = _f[1];
+  var _s = React.useState(null), status = _s[0], setStatus = _s[1];
+  var _a = React.useState(false), analyzing = _a[0], setAnalyzing = _a[1];
+  var _d = React.useState(false), dragging = _d[0], setDrag = _d[1];
+  var _q = React.useState(deal.quoteData || null), quoteResult = _q[0], setQuoteResult = _q[1];
+
+  function processQuote(file) {
+    var key = "";
+    try { key = localStorage.getItem("salesai_api_key") || ""; } catch(e) {}
+    if (!key) { setStatus("Set your Claude API key in settings first."); return; }
+    setAnalyzing(true);
+    setStatus("Reading quote...");
+    var reader = new FileReader();
+    reader.onload = function() {
+      setStatus("Analyzing quote with AI...");
+      fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
+        body: JSON.stringify({model: "claude-sonnet-4-20250514", max_tokens: 4096, messages: [{role: "user", content: QUOTE_PROMPT + "\n\nQUOTE DOCUMENT:\n" + reader.result}]})
+      }).then(function(r) { return r.json(); })
+      .then(function(data) {
+        var rt = data.content && data.content[0] && data.content[0].text || "";
+        var js = rt; var m = rt.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (m) js = m[1];
+        try {
+          var p = JSON.parse(js.trim());
+          setQuoteResult(p);
+          var patch = {quoteData: p, quoteUploaded: true};
+          if (p.acv) patch.acv = p.acv;
+          if (p.tcv) patch.tcv = p.tcv;
+          if (p.contractTerm) patch.term = p.contractTerm;
+          if (p.seats) patch.seats = p.seats;
+          if (p.concurrent) patch.concurrent = p.concurrent;
+          if (p.monthlyVol) patch.monthlyVol = p.monthlyVol;
+          if (p.virtualAgents) patch.virtualAgents = p.virtualAgents;
+          if (p.closeDate) patch.close = p.closeDate;
+          if (p.goLive) patch.goLive = p.goLive;
+          if (p.deploy) patch.deploy = p.deploy;
+          if (p.region) patch.region = p.region;
+          if (p.incumbent) patch.incumbent = p.incumbent;
+          if (p.discount) patch.discount = p.discount;
+          if (p.products && p.products.length > 0) patch.products = p.products;
+          updateDeal(patch);
+          setStatus("Quote applied as source of truth!");
+          setAnalyzing(false);
+        } catch(e) { setStatus("Parse error: " + e.message); setAnalyzing(false); }
+      }).catch(function(err) { setStatus("Error: " + err.message); setAnalyzing(false); });
+    };
+    reader.readAsText(file);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault(); setDrag(false);
+    var dropped = Array.from(e.dataTransfer.files);
+    setFiles(dropped);
+    if (dropped.length > 0) processQuote(dropped[0]);
+  }
+  function handleInput(e) {
+    var selected = Array.from(e.target.files);
+    setFiles(selected);
+    if (selected.length > 0) processQuote(selected[0]);
+  }
+
+  return React.createElement("div", {style:{padding:"24px 32px"}},
+    React.createElement("h3", {style:{color:"#10b981", marginBottom:4, fontSize:16, fontWeight:700}}, "Upload Working Quote"),
+    React.createElement("p", {style:{color:"#94a3b8", fontSize:13, marginBottom:16}}, "Upload a quote to make it the source of truth for all financials and quantities."),
+    React.createElement("div", {
+      onDragOver: function(e) { e.preventDefault(); setDrag(true); },
+      onDragLeave: function() { setDrag(false); },
+      onDrop: handleDrop,
+      style:{border:"2px dashed " + (dragging ? "#10b981" : "#334155"), borderRadius:12, padding:40, textAlign:"center", background:dragging ? "rgba(16,185,129,.08)" : "transparent", transition:"all .2s"}
+    },
+      React.createElement("p", {style:{color:"#94a3b8", marginBottom:8, fontSize:14}}, analyzing ? "Analyzing..." : "Drag & drop or click to upload your quote"),
+      React.createElement("input", {type:"file", onChange:handleInput, style:{marginTop:8}, disabled:analyzing})
+    ),
+    files.length > 0 && React.createElement("div", {style:{marginTop:12}},
+      files.map(function(f, i) {
+        return React.createElement("div", {key:i, style:{display:"flex", alignItems:"center", gap:8, padding:"4px 0"}},
+          React.createElement("span", {style:{color:"#e2e8f0", fontSize:13}}, f.name),
+          React.createElement("span", {style:{color:"#10b981", fontSize:11, fontWeight:700, background:"rgba(16,185,129,.15)", padding:"2px 8px", borderRadius:4}}, "SOURCE OF TRUTH")
+        );
+      })
+    ),
+    status && React.createElement("p", {style:{color: status.indexOf("rror") > -1 || status.indexOf("arse") > -1 ? "#ef4444" : "#4ade80", marginTop:12, fontSize:13, fontWeight:600}}, status),
+    quoteResult && quoteResult.lineItems && quoteResult.lineItems.length > 0 && React.createElement("div", {style:{marginTop:16, background:"rgba(16,185,129,.06)", borderRadius:8, padding:16}},
+      React.createElement("h4", {style:{color:"#10b981", fontSize:14, marginBottom:8}}, "Extracted Line Items"),
+      React.createElement("table", {style:{width:"100%", fontSize:12, color:"#cbd5e1", borderCollapse:"collapse"}},
+        React.createElement("thead", null, React.createElement("tr", null,
+          React.createElement("th", {style:{textAlign:"left", padding:"4px 8px", borderBottom:"1px solid #334155"}}, "Item"),
+          React.createElement("th", {style:{textAlign:"right", padding:"4px 8px", borderBottom:"1px solid #334155"}}, "Qty"),
+          React.createElement("th", {style:{textAlign:"right", padding:"4px 8px", borderBottom:"1px solid #334155"}}, "Unit Price"),
+          React.createElement("th", {style:{textAlign:"right", padding:"4px 8px", borderBottom:"1px solid #334155"}}, "Total")
+        )),
+        React.createElement("tbody", null, quoteResult.lineItems.map(function(li, i) {
+          return React.createElement("tr", {key:i},
+            React.createElement("td", {style:{padding:"4px 8px"}}, li.description),
+            React.createElement("td", {style:{padding:"4px 8px", textAlign:"right"}}, li.quantity),
+            React.createElement("td", {style:{padding:"4px 8px", textAlign:"right"}}, li.unitPrice),
+            React.createElement("td", {style:{padding:"4px 8px", textAlign:"right"}}, li.total)
+          );
+        }))
+      )
+    ),
+    deal.quoteUploaded && !analyzing && React.createElement("p", {style:{color:"#10b981", fontSize:12, marginTop:8, fontStyle:"italic"}}, "Quote data is the active source of truth for this deal.")
+  );
+}
+
 function ViewCommercials({
   deal,
   generated,
   docData,
-  updateDocData
+  updateDocData,
+  updateDeal
 }) {
   var _tab = React.useState("comm"), subTab = _tab[0], setSubTab = _tab[1];
   var commTabs = [{key:"comm",label:"Commercials"},{key:"quote",label:"Quote"},{key:"config",label:"Configuration"}];
@@ -4017,7 +4128,7 @@ function ViewCommercials({
     ),
     React.createElement(SubTabs, {tabs:commTabs, active:subTab, onChange:setSubTab, accentColor:"#10b981"}),
     subTab === "comm" ? React.createElement(EditableSections, {sections:sections, onChange:updateDocData, accentColor:"#10b981", IconComp:IBarChart})
-    : subTab === "quote" ? React.createElement(FileUploadArea, {label:"Working Quote", accentColor:"#10b981"})
+    : subTab === "quote" ? React.createElement(QuoteUploadPanel, {deal:deal, updateDeal:updateDeal})
     : React.createElement(PlaceholderPanel, {title:"Configuration", subtitle:"Configuration details will be added here. Specs coming soon.", icon:"\u2699\uFE0F"})
   );
 }
@@ -7215,6 +7326,7 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     generated: (deal.generated || {})[docKey],
     onExport: exportPDF,
     docData: (deal.docData || {})[docKey],
+    updateDeal: updateDeal,
     updateDocData: function (d) {
       updateDocData(docKey, d);
     }
