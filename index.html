@@ -5979,9 +5979,9 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       showToast("Enter your Claude API key first");
       return;
     }
-    const files = fileDataRef.current[dealKey];
-    if (!files || files.length === 0) {
-      showToast("Upload source files first (transcripts, PDFs)");
+    let files = fileDataRef.current[dealKey];
+    if ((!files || files.length === 0) && !deal.driveUrl) {
+      showToast("Upload source files or link a Google Drive folder first");
       return;
     }
     if (!deal.name.trim()) {
@@ -6011,6 +6011,13 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
         console.error("Drive fetch error:", err);
         showToast("Drive: " + err.message + " \u2014 analyzing uploaded files only");
       }
+    }
+    // Re-read files after Drive integration may have added new ones
+    files = fileDataRef.current[dealKey] || [];
+    if (files.length === 0) {
+      showToast("No files found. Check your Drive folder or upload files manually.");
+      setAnalyzing(false);
+      return;
     }
     setAnalyzeStatus("Preparing " + files.length + " file(s) for analysis...");
     try {
