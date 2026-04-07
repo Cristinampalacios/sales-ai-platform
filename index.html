@@ -5974,6 +5974,7 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     showToast(files.length + " file(s) uploaded \u2014 click Analyze Deal to extract intelligence");
   };
   const analyzeDeal = async () => {
+    console.log("[Analyze] Starting analysis. dealKey:", dealKey, "driveUrl:", deal.driveUrl, "fileCount:", (fileDataRef.current[dealKey] || []).length);
     if (!apiKey) {
       setSettingsModal(true);
       showToast("Enter your Claude API key first");
@@ -5981,6 +5982,7 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     }
     let files = fileDataRef.current[dealKey];
     if ((!files || files.length === 0) && !deal.driveUrl) {
+      console.log("[Analyze] No files and no driveUrl — aborting");
       showToast("Upload source files or link a Google Drive folder first");
       return;
     }
@@ -5991,6 +5993,7 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     setAnalyzing(true);
     // If a Drive folder is linked, fetch files from it first
     if (deal.driveUrl && window.DriveIntegration) {
+      console.log("[Analyze] Drive URL detected, fetching files from:", deal.driveUrl);
       setAnalyzeStatus("Connecting to Google Drive...");
       try {
         const driveFiles = await window.DriveIntegration.fetchDriveFiles(deal.driveUrl, function(s) { setAnalyzeStatus(s); });
@@ -6059,11 +6062,18 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     setAnalyzing(false);
   };
   const saveDriveUrl = () => {
+    const url = driveDraft.trim();
+    console.log("[Drive] Saving driveUrl:", url);
+    if (!url) {
+      showToast("Please enter a Google Drive folder URL");
+      return;
+    }
     updateDeal({
-      driveUrl: driveDraft.trim()
+      driveUrl: url
     });
     setDriveModal(false);
     showToast("Drive folder linked \u2713");
+    console.log("[Drive] driveUrl saved successfully");
   };
   const saveSettings = () => {
     saveApiKey(apiKeyDraft);
@@ -6711,10 +6721,11 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     })
   }, /*#__PURE__*/React.createElement(IUpload, {
     size: 12
-  }), " Upload"), deal.driveUrl ? /*#__PURE__*/React.createElement("button", {
+  }), " Upload"), deal.driveUrl ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
     onClick: function () {
       window.open(deal.driveUrl, "_blank");
     },
+    title: deal.driveUrl,
     style: btn({
       padding: "6px 12px",
       background: "#f0fdf4",
@@ -6723,9 +6734,23 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       fontSize: 11,
       borderRadius: 8
     })
-  }, "Drive") : /*#__PURE__*/React.createElement("button", {
+  }, "\u2714 Drive"), /*#__PURE__*/React.createElement("button", {
     onClick: function () {
-      setDriveDraft("");
+      setDriveDraft(deal.driveUrl || "");
+      setDriveModal(true);
+    },
+    title: "Edit Drive link",
+    style: btn({
+      padding: "6px 8px",
+      background: "#f8fafc",
+      color: "#64748b",
+      border: "1px solid #e2e8f0",
+      fontSize: 10,
+      borderRadius: 6
+    })
+  }, "\u270E")) : /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setDriveDraft(deal.driveUrl || "");
       setDriveModal(true);
     },
     style: btn({
