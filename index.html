@@ -3996,6 +3996,180 @@ function ViewSOI({
     }));
   })));
 }
+
+// \u2500\u2500 Cognigy Pricing Calculator
+function CognigyPricingTool({ deal, updateDeal }) {
+  // Load saved config from deal, otherwise start blank (0)
+  var saved = deal.cognigyPricing || {};
+  var _dv = React.useState(function() {
+    if (saved.dailyVolume != null) return saved.dailyVolume;
+    var mi = parseInt(deal.monthlyInteractions) || 0;
+    return mi > 0 ? Math.round(mi / 30) : 0;
+  }), dailyVolume = _dv[0], setDailyVolume = _dv[1];
+  var _vp = React.useState(saved.voicePercentage != null ? saved.voicePercentage : 0), voicePercentage = _vp[0], setVoicePercentage = _vp[1];
+  var _dm = React.useState(saved.deploymentModel || (deal.deploymentModel === "Private SaaS" ? "Private SaaS" : "SaaS")), deploymentModel = _dm[0], setDeploymentModel = _dm[1];
+  var _st = React.useState(saved.supportTier || "Standard"), supportTier = _st[0], setSupportTier = _st[1];
+  var _synced = React.useState(false), synced = _synced[0], setSynced = _synced[1];
+
+  var pricing = React.useMemo(function() {
+    var annualVolume = dailyVolume * 365;
+    var baseLicensing = 0;
+    if (annualVolume <= 0) baseLicensing = 0;
+    else if (annualVolume <= 1000000) baseLicensing = annualVolume * 0.30;
+    else if (annualVolume <= 5000000) baseLicensing = 300000 + (annualVolume - 1000000) * 0.15;
+    else if (annualVolume <= 10000000) baseLicensing = 900000 + (annualVolume - 5000000) * 0.10;
+    else baseLicensing = 1400000 + (annualVolume - 10000000) * 0.08;
+    var voiceVolume = annualVolume * (voicePercentage / 100);
+    var voiceUplift = voiceVolume * 0.05;
+    var deploymentUplift = deploymentModel === "Private SaaS" ? baseLicensing * 0.20 : 0;
+    var supportUplift = supportTier === "Enterprise" ? baseLicensing * 0.15 : 0;
+    var arr = baseLicensing + voiceUplift + deploymentUplift + supportUplift;
+    var psEstimate = arr > 0 ? Math.max(50000, arr * 0.18) : 0;
+    return { annualVolume: annualVolume, baseLicensing: baseLicensing, voiceUplift: voiceUplift, deploymentUplift: deploymentUplift, supportUplift: supportUplift, arr: arr, psEstimate: psEstimate, tcvYear1: arr + psEstimate };
+  }, [dailyVolume, voicePercentage, deploymentModel, supportTier]);
+
+  var fmt = function(val) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val); };
+  var fmtN = function(val) { return new Intl.NumberFormat("en-US").format(val); };
+
+  var syncToDeal = function() {
+    updateDeal({
+      acv: fmt(pricing.arr),
+      tcv: fmt(pricing.tcvYear1),
+      monthlyInteractions: fmtN(Math.round(dailyVolume * 30)),
+      deploymentModel: deploymentModel,
+      cognigyPricing: { dailyVolume: dailyVolume, voicePercentage: voicePercentage, deploymentModel: deploymentModel, supportTier: supportTier }
+    });
+    setSynced(true);
+    setTimeout(function() { setSynced(false); }, 2000);
+  };
+
+  var cardStyle = { background: "#fff", borderRadius: 10, border: "1px solid #e2e8f0", padding: 20, marginBottom: 16 };
+  var labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: "#475569", marginBottom: 4 };
+  var inputStyle = { width: "100%", padding: "8px 10px", fontSize: 13, border: "1px solid #cbd5e1", borderRadius: 8, outline: "none", background: "#f8fafc", boxSizing: "border-box" };
+  var selectStyle = Object.assign({}, inputStyle, { cursor: "pointer" });
+
+  return React.createElement("div", { style: { padding: "0 4px" } },
+    React.createElement("div", { style: { background: "linear-gradient(135deg,#1e40af,#7c3aed)", padding: "20px 24px", borderRadius: 12, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" } },
+      React.createElement("div", null,
+        React.createElement("h2", { style: { fontSize: 18, fontWeight: 800, color: "#fff", margin: "0 0 4px" } }, "Cognigy.AI Commercial Specification"),
+        React.createElement("p", { style: { fontSize: 12, color: "#c7d2fe", margin: 0 } }, "Budgetary Quote & Deal Sizing Tool")
+      ),
+      React.createElement("button", {
+        onClick: syncToDeal,
+        style: { background: synced ? "#22c55e" : "#fff", color: synced ? "#fff" : "#1e40af", border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }
+      }, synced ? "\u2713 Synced to Deal" : "\u2B06 Sync to Deal")
+    ),
+    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20 } },
+      React.createElement("div", null,
+        React.createElement("div", { style: cardStyle },
+          React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#1e293b", margin: "0 0 16px", paddingBottom: 10, borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", gap: 8 } },
+            React.createElement("span", { style: { width: 24, height: 24, borderRadius: 6, background: "#eff6ff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#2563eb" } }, "\u2699"),
+            "Capacity Parameters"
+          ),
+          React.createElement("div", { style: { marginBottom: 16 } },
+            React.createElement("label", { style: labelStyle }, "Daily Interactions"),
+            React.createElement("input", { type: "number", value: dailyVolume, onChange: function(e) { setDailyVolume(Number(e.target.value) || 0); }, style: inputStyle }),
+            React.createElement("p", { style: { fontSize: 11, color: "#94a3b8", margin: "4px 0 0" } }, "Annual Run-Rate: ", fmtN(pricing.annualVolume))
+          ),
+          React.createElement("div", { style: { marginBottom: 16 } },
+            React.createElement("label", { style: labelStyle }, "\uD83C\uDF99 Voice Channel Mix (", voicePercentage, "%)"),
+            React.createElement("input", { type: "range", min: 0, max: 100, value: voicePercentage, onChange: function(e) { setVoicePercentage(Number(e.target.value)); }, style: { width: "100%", accentColor: "#2563eb" } }),
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: "#94a3b8", marginTop: 2 } },
+              React.createElement("span", null, (100 - voicePercentage) + "% Digital"),
+              React.createElement("span", null, voicePercentage + "% Voice")
+            )
+          ),
+          React.createElement("div", { style: { marginBottom: 16 } },
+            React.createElement("label", { style: labelStyle }, "Deployment Architecture"),
+            React.createElement("select", { value: deploymentModel, onChange: function(e) { setDeploymentModel(e.target.value); }, style: selectStyle },
+              React.createElement("option", { value: "SaaS" }, "Public SaaS (AWS/Azure)"),
+              React.createElement("option", { value: "Private SaaS" }, "Private SaaS (Dedicated)")
+            )
+          ),
+          React.createElement("div", { style: { marginBottom: 0 } },
+            React.createElement("label", { style: labelStyle }, "SLA & Support Tier"),
+            React.createElement("select", { value: supportTier, onChange: function(e) { setSupportTier(e.target.value); }, style: selectStyle },
+              React.createElement("option", { value: "Standard" }, "Standard (Business Hours)"),
+              React.createElement("option", { value: "Enterprise" }, "Enterprise (24/7, Dedicated TAM)")
+            )
+          )
+        ),
+        React.createElement("div", { style: cardStyle },
+          React.createElement("h3", { style: { fontSize: 13, fontWeight: 700, color: "#1e293b", margin: "0 0 10px" } }, "\u26A1 Quick Scenarios"),
+          [{ label: "Mid-Market (10K/day)", vol: 10000 }, { label: "Enterprise (40K/day)", vol: 40000 }, { label: "Large Enterprise (100K/day)", vol: 100000 }, { label: "Mega (500K/day)", vol: 500000 }].map(function(sc) {
+            return React.createElement("button", {
+              key: sc.label,
+              onClick: function() { setDailyVolume(sc.vol); },
+              style: { display: "block", width: "100%", textAlign: "left", padding: "8px 12px", marginBottom: 4, fontSize: 12, fontWeight: dailyVolume === sc.vol ? 700 : 500, background: dailyVolume === sc.vol ? "#eff6ff" : "#f8fafc", color: dailyVolume === sc.vol ? "#1d4ed8" : "#475569", border: dailyVolume === sc.vol ? "1px solid #bfdbfe" : "1px solid #e2e8f0", borderRadius: 6, cursor: "pointer", transition: "all 0.15s" }
+            }, sc.label);
+          })
+        )
+      ),
+      React.createElement("div", null,
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 } },
+          React.createElement("div", { style: { background: "linear-gradient(135deg,#eff6ff,#dbeafe)", padding: "18px 20px", borderRadius: 10, border: "1px solid #bfdbfe" } },
+            React.createElement("p", { style: { fontSize: 11, fontWeight: 600, color: "#3b82f6", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: 0.5 } }, "Software ARR"),
+            React.createElement("p", { style: { fontSize: 28, fontWeight: 800, color: "#1e3a5f", margin: 0 } }, fmt(pricing.arr))
+          ),
+          React.createElement("div", { style: { background: "linear-gradient(135deg,#f5f3ff,#ede9fe)", padding: "18px 20px", borderRadius: 10, border: "1px solid #c4b5fd" } },
+            React.createElement("p", { style: { fontSize: 11, fontWeight: 600, color: "#7c3aed", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: 0.5 } }, "Year 1 TCV (inc. Services)"),
+            React.createElement("p", { style: { fontSize: 28, fontWeight: 800, color: "#3b0764", margin: 0 } }, fmt(pricing.tcvYear1))
+          )
+        ),
+        React.createElement("div", { style: cardStyle },
+          React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#1e293b", margin: "0 0 14px", paddingBottom: 10, borderBottom: "1px solid #f1f5f9" } }, "Budgetary Quote Breakdown"),
+          React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 13 } },
+            React.createElement("thead", null,
+              React.createElement("tr", { style: { background: "#f8fafc", textAlign: "left" } },
+                React.createElement("th", { style: { padding: "8px 12px", fontWeight: 600, color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 } }, "Line Item"),
+                React.createElement("th", { style: { padding: "8px 12px", fontWeight: 600, color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, textAlign: "right" } }, "Metric"),
+                React.createElement("th", { style: { padding: "8px 12px", fontWeight: 600, color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, textAlign: "right" } }, "Est. Cost")
+              )
+            ),
+            React.createElement("tbody", null,
+              [
+                { name: "Cognigy.AI Core Platform", metric: fmtN(pricing.annualVolume) + " reqs/pa", cost: pricing.baseLicensing },
+                { name: "Voice Gateway Connectivity", metric: voicePercentage + "% Volume", cost: pricing.voiceUplift },
+                { name: "Deployment Uplift", metric: deploymentModel, cost: pricing.deploymentUplift },
+                { name: "Support & Maintenance", metric: supportTier, cost: pricing.supportUplift },
+                { name: "Professional Services (One-Time)", metric: "Implementation Ramp", cost: pricing.psEstimate, highlight: true }
+              ].map(function(row, i) {
+                return React.createElement("tr", { key: i, style: { borderBottom: "1px solid #f1f5f9", background: row.highlight ? "#f8fafc" : "transparent" } },
+                  React.createElement("td", { style: { padding: "10px 12px", fontWeight: 600, color: "#1e293b" } }, row.name),
+                  React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", color: "#64748b" } }, row.metric),
+                  React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontWeight: 600, color: row.cost > 0 ? "#1e293b" : "#94a3b8" } }, fmt(row.cost))
+                );
+              })
+            ),
+            React.createElement("tfoot", null,
+              React.createElement("tr", { style: { background: "#f0f9ff", borderTop: "2px solid #2563eb" } },
+                React.createElement("td", { style: { padding: "10px 12px", fontWeight: 800, color: "#1e3a5f" } }, "Total Year 1"),
+                React.createElement("td", null),
+                React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontWeight: 800, color: "#1e3a5f", fontSize: 15 } }, fmt(pricing.tcvYear1))
+              )
+            )
+          ),
+          React.createElement("p", { style: { fontSize: 11, color: "#94a3b8", marginTop: 12, fontStyle: "italic" } }, "*Estimates derived from public benchmark data (AWS Marketplace ELA listings). Not a binding commercial offer.")
+        ),
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 } },
+          React.createElement("div", { style: { background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0", padding: "14px 16px", textAlign: "center" } },
+            React.createElement("p", { style: { fontSize: 10, fontWeight: 600, color: "#64748b", margin: "0 0 4px", textTransform: "uppercase" } }, "Blended $/Interaction"),
+            React.createElement("p", { style: { fontSize: 20, fontWeight: 800, color: "#1e293b", margin: 0 } }, pricing.annualVolume > 0 ? "$" + (pricing.arr / pricing.annualVolume).toFixed(4) : "\u2014")
+          ),
+          React.createElement("div", { style: { background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0", padding: "14px 16px", textAlign: "center" } },
+            React.createElement("p", { style: { fontSize: 10, fontWeight: 600, color: "#64748b", margin: "0 0 4px", textTransform: "uppercase" } }, "PS % of TCV"),
+            React.createElement("p", { style: { fontSize: 20, fontWeight: 800, color: "#1e293b", margin: 0 } }, pricing.tcvYear1 > 0 ? Math.round(pricing.psEstimate / pricing.tcvYear1 * 100) + "%" : "\u2014")
+          ),
+          React.createElement("div", { style: { background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0", padding: "14px 16px", textAlign: "center" } },
+            React.createElement("p", { style: { fontSize: 10, fontWeight: 600, color: "#64748b", margin: "0 0 4px", textTransform: "uppercase" } }, "Voice Uplift %"),
+            React.createElement("p", { style: { fontSize: 20, fontWeight: 800, color: "#1e293b", margin: 0 } }, pricing.arr > 0 ? Math.round(pricing.voiceUplift / pricing.arr * 100) + "%" : "\u2014")
+          )
+        )
+      )
+    )
+  );
+}
+
 // \u2500\u2500 Commercials View
 var QUOTE_PROMPT = "You are analyzing a sales quote/proposal document for a contact center CX, AI, and WFM deal. Extract ALL financial and sizing data. This quote is the SOURCE OF TRUTH.\nReturn ONLY valid JSON:\n{\n  \"acv\": \"annual value or null\",\n  \"tcv\": \"total value or null\",\n  \"contractTerm\": \"duration or null\",\n  \"seats\": \"named users or null\",\n  \"concurrent\": \"concurrent users or null\",\n  \"monthlyVol\": \"monthly volume or null\",\n  \"virtualAgents\": \"AI agents or null\",\n  \"products\": [\"product names\"],\n  \"lineItems\": [{\"description\":\"name\",\"quantity\":\"qty\",\"unitPrice\":\"price\",\"total\":\"total\"}],\n  \"discount\": \"discount or null\",\n  \"closeDate\": \"date or null\",\n  \"goLive\": \"date or null\",\n  \"deploy\": \"model or null\",\n  \"region\": \"region or null\",\n  \"incumbent\": \"vendor or null\"\n}\nExtract exact numbers. These override all previous estimates.";
 
@@ -4005,20 +4179,68 @@ function QuoteUploadPanel({deal, updateDeal}) {
   var _a = React.useState(false), analyzing = _a[0], setAnalyzing = _a[1];
   var _d = React.useState(false), dragging = _d[0], setDrag = _d[1];
   var _q = React.useState(deal.quoteData || null), quoteResult = _q[0], setQuoteResult = _q[1];
+  var _regen = React.useState(null), regenStatus = _regen[0], setRegenStatus = _regen[1];
+
+  /* Regenerate ALL previously generated documents using updated deal data */
+  function regenerateAllDocs(updatedDeal) {
+    var generated = updatedDeal.generated || {};
+    var generatedKeys = Object.keys(generated).filter(function(k) { return generated[k]; });
+    if (generatedKeys.length === 0) return {};
+
+    var newDocData = updatedDeal.docData ? JSON.parse(JSON.stringify(updatedDeal.docData)) : {};
+    var regenerated = [];
+
+    generatedKeys.forEach(function(dk) {
+      try {
+        var newData = null;
+        if (dk === "soe") newData = makeSOE(updatedDeal);
+        else if (dk === "msp") newData = makeMSP(updatedDeal);
+        else if (dk === "disc") newData = makeDisc(updatedDeal);
+        else if (dk === "champ") newData = { letter: makeChampLetter(updatedDeal), bizValue: makeBizValue(updatedDeal) };
+        else if (dk === "soi") newData = makeStakeholders(updatedDeal);
+        else if (dk === "timeline") newData = makeTimeline(updatedDeal);
+        else if (dk === "discount") newData = makeDiscountApproval(updatedDeal);
+        else if (dk === "hist") newData = makeHistory(updatedDeal);
+        else if (dk === "exec") newData = makeExecSummary(updatedDeal);
+        else if (dk === "commercials") newData = makeCommercials(updatedDeal);
+        else if (dk === "roi") newData = makeROI(updatedDeal);
+        else if (dk === "acctplan") newData = makeAccountPlan(updatedDeal);
+        if (newData) {
+          newDocData[dk] = newData;
+          regenerated.push(dk);
+        }
+      } catch (e) { console.warn("Failed to regenerate " + dk, e); }
+    });
+
+    return { docData: newDocData, regenerated: regenerated };
+  }
 
   function processQuote(file) {
     var key = "";
     try { key = localStorage.getItem("salesai_api_key") || ""; } catch(e) {}
     if (!key) { setStatus("Set your Claude API key in settings first."); return; }
     setAnalyzing(true);
+    setRegenStatus(null);
     setStatus("Reading quote...");
+
+    /* Support both text and PDF quotes */
     var reader = new FileReader();
+    var isPDF = file.name.toLowerCase().endsWith(".pdf");
     reader.onload = function() {
       setStatus("Analyzing quote with AI...");
+
+      var content = [];
+      if (isPDF) {
+        content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: reader.result.split(",")[1] } });
+        content.push({ type: "text", text: QUOTE_PROMPT });
+      } else {
+        content.push({ type: "text", text: QUOTE_PROMPT + "\n\nQUOTE DOCUMENT:\n" + reader.result });
+      }
+
       fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
-        body: JSON.stringify({model: "claude-sonnet-4-20250514", max_tokens: 4096, messages: [{role: "user", content: QUOTE_PROMPT + "\n\nQUOTE DOCUMENT:\n" + reader.result}]})
+        body: JSON.stringify({model: "claude-sonnet-4-20250514", max_tokens: 4096, messages: [{role: "user", content: content}]})
       }).then(function(r) { return r.json(); })
       .then(function(data) {
         var rt = data.content && data.content[0] && data.content[0].text || "";
@@ -4027,28 +4249,70 @@ function QuoteUploadPanel({deal, updateDeal}) {
         try {
           var p = JSON.parse(js.trim());
           setQuoteResult(p);
-          var patch = {quoteData: p, quoteUploaded: true};
+
+          /* Build patch with CORRECT deal field names */
+          var patch = {quoteData: p, quoteUploaded: true, quoteFileName: file.name, quoteUploadDate: new Date().toISOString()};
           if (p.acv) patch.acv = p.acv;
           if (p.tcv) patch.tcv = p.tcv;
-          if (p.contractTerm) patch.term = p.contractTerm;
-          if (p.seats) patch.seats = p.seats;
-          if (p.concurrent) patch.concurrent = p.concurrent;
-          if (p.monthlyVol) patch.monthlyVol = p.monthlyVol;
+          if (p.contractTerm) patch.contractTerm = p.contractTerm;
+          if (p.seats) patch.agentSeats = p.seats;
+          if (p.concurrent) patch.concurrentUsers = p.concurrent;
+          if (p.monthlyVol) patch.monthlyInteractions = p.monthlyVol;
           if (p.virtualAgents) patch.virtualAgents = p.virtualAgents;
-          if (p.closeDate) patch.close = p.closeDate;
-          if (p.goLive) patch.goLive = p.goLive;
-          if (p.deploy) patch.deploy = p.deploy;
+          if (p.closeDate) patch.closeDate = p.closeDate;
+          if (p.goLive) patch.date = p.goLive;
+          if (p.deploy) patch.deploymentModel = p.deploy;
           if (p.region) patch.region = p.region;
-          if (p.incumbent) patch.incumbent = p.incumbent;
+          if (p.incumbent) patch.currentVendor = p.incumbent;
           if (p.discount) patch.discount = p.discount;
           if (p.products && p.products.length > 0) patch.products = p.products;
+
+          /* Also update MEDDPICC dealCommercials if it exists */
+          if (deal.meddpicc) {
+            var meddCopy = JSON.parse(JSON.stringify(deal.meddpicc));
+            if (!meddCopy.dealCommercials) meddCopy.dealCommercials = {};
+            var dc = meddCopy.dealCommercials;
+            if (p.acv) dc.acv = p.acv;
+            if (p.tcv) dc.tcv = p.tcv;
+            if (p.contractTerm) dc.contractTerm = p.contractTerm;
+            if (p.seats) dc.agentSeats = p.seats;
+            if (p.concurrent) dc.concurrentUsers = p.concurrent;
+            if (p.monthlyVol) dc.monthlyInteractions = p.monthlyVol;
+            if (p.virtualAgents) dc.virtualAgents = p.virtualAgents;
+            if (p.closeDate) dc.closeDate = p.closeDate;
+            if (p.goLive) dc.goLiveDate = p.goLive;
+            if (p.deploy) dc.deploymentModel = p.deploy;
+            if (p.region) dc.region = p.region;
+            if (p.incumbent) dc.currentVendor = p.incumbent;
+            if (p.discount) dc.discount = p.discount;
+            if (p.products && p.products.length > 0) dc.products = p.products;
+            patch.meddpicc = meddCopy;
+          }
+
+          /* Regenerate ALL previously generated documents with updated deal data */
+          setStatus("Updating deal and regenerating documents...");
+          var updatedDeal = Object.assign({}, deal, patch);
+          var regenResult = regenerateAllDocs(updatedDeal);
+          if (regenResult.docData) {
+            patch.docData = regenResult.docData;
+          }
+
           updateDeal(patch);
+
+          var regenCount = regenResult.regenerated ? regenResult.regenerated.length : 0;
+          if (regenCount > 0) {
+            setRegenStatus("Regenerated " + regenCount + " document(s): " + regenResult.regenerated.join(", "));
+          }
           setStatus("Quote applied as source of truth!");
           setAnalyzing(false);
         } catch(e) { setStatus("Parse error: " + e.message); setAnalyzing(false); }
       }).catch(function(err) { setStatus("Error: " + err.message); setAnalyzing(false); });
     };
-    reader.readAsText(file);
+    if (isPDF) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
   }
 
   function handleDrop(e) {
@@ -4084,6 +4348,7 @@ function QuoteUploadPanel({deal, updateDeal}) {
       })
     ),
     status && React.createElement("p", {style:{color: status.indexOf("rror") > -1 || status.indexOf("arse") > -1 ? "#ef4444" : "#4ade80", marginTop:12, fontSize:13, fontWeight:600}}, status),
+    regenStatus && React.createElement("p", {style:{color:"#3b82f6", marginTop:6, fontSize:12, fontWeight:600, background:"rgba(59,130,246,.08)", padding:"6px 10px", borderRadius:6}}, "\u21BB " + regenStatus),
     quoteResult && quoteResult.lineItems && quoteResult.lineItems.length > 0 && React.createElement("div", {style:{marginTop:16, background:"rgba(16,185,129,.06)", borderRadius:8, padding:16}},
       React.createElement("h4", {style:{color:"#10b981", fontSize:14, marginBottom:8}}, "Extracted Line Items"),
       React.createElement("table", {style:{width:"100%", fontSize:12, color:"#cbd5e1", borderCollapse:"collapse"}},
@@ -4103,7 +4368,11 @@ function QuoteUploadPanel({deal, updateDeal}) {
         }))
       )
     ),
-    deal.quoteUploaded && !analyzing && React.createElement("p", {style:{color:"#10b981", fontSize:12, marginTop:8, fontStyle:"italic"}}, "Quote data is the active source of truth for this deal.")
+    deal.quoteUploaded && !analyzing && React.createElement("div", {style:{marginTop:12, background:"rgba(16,185,129,.06)", borderRadius:8, padding:"10px 14px", borderLeft:"3px solid #10b981"}},
+      React.createElement("p", {style:{color:"#10b981", fontSize:12, fontWeight:700, margin:0}}, "Quote is the active source of truth for this deal."),
+      deal.quoteFileName && React.createElement("p", {style:{color:"#94a3b8", fontSize:11, margin:"4px 0 0"}}, "File: " + deal.quoteFileName + (deal.quoteUploadDate ? " (uploaded " + new Date(deal.quoteUploadDate).toLocaleDateString() + ")" : "")),
+      React.createElement("p", {style:{color:"#64748b", fontSize:11, margin:"4px 0 0"}}, "Upload a new quote to update all financials and regenerate documents automatically.")
+    )
   );
 }
 
@@ -4115,7 +4384,8 @@ function ViewCommercials({
   updateDeal
 }) {
   var _tab = React.useState("comm"), subTab = _tab[0], setSubTab = _tab[1];
-  var commTabs = [{key:"comm",label:"Commercials"},{key:"quote",label:"Quote"},{key:"config",label:"Configuration"}];
+  var isCognigyDeal = (deal.products || []).indexOf("Cognigy AI") >= 0;
+  var commTabs = [{key:"comm",label:"Commercials"},{key:"quote",label:"Quote"},{key:"config",label: isCognigyDeal ? "Cognigy Pricing" : "Configuration"}];
   if (!generated && subTab === "comm") return React.createElement("div", null,
     React.createElement(SubTabs, {tabs:commTabs, active:subTab, onChange:setSubTab, accentColor:"#10b981"}),
     React.createElement(EmptyState, {label:"Commercials",name:deal.name})
@@ -4129,7 +4399,8 @@ function ViewCommercials({
     React.createElement(SubTabs, {tabs:commTabs, active:subTab, onChange:setSubTab, accentColor:"#10b981"}),
     subTab === "comm" ? React.createElement(EditableSections, {sections:sections, onChange:updateDocData, accentColor:"#10b981", IconComp:IBarChart})
     : subTab === "quote" ? React.createElement(QuoteUploadPanel, {deal:deal, updateDeal:updateDeal})
-    : React.createElement(PlaceholderPanel, {title:"Configuration", subtitle:"Configuration details will be added here. Specs coming soon.", icon:"\u2699\uFE0F"})
+    : (deal.products || []).indexOf("Cognigy AI") >= 0 ? React.createElement(CognigyPricingTool, {deal:deal, updateDeal:updateDeal})
+    : React.createElement(PlaceholderPanel, {title:"Configuration", subtitle:"Select Cognigy AI product to access the pricing calculator, or configuration details will appear here.", icon:"\u2699\uFE0F"})
   );
 }
 function ViewROI({ deal, generated, docData, updateDocData }) {
@@ -5700,6 +5971,308 @@ function DealDashboard({
     }), d.label, isGenerated ? " \u2713" : "");
   }))));
 }
+
+// ── Account Dashboard Component ──────────────────────────────────────────
+function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKey, setDocKey }) {
+  var _React = React;
+  var useState = _React.useState, useEffect = _React.useEffect;
+  var opps = account.opportunities || {};
+  var oppList = Object.entries(opps);
+
+  // ── Rollup calculations ──
+  function parseACV(s) { if (!s) return 0; var n = String(s).replace(/[^0-9.]/g, ''); return parseFloat(n) || 0; }
+  var totalACV = oppList.reduce(function(sum, e) { return sum + parseACV(e[1].acv); }, 0);
+  var totalTCV = oppList.reduce(function(sum, e) { return sum + parseACV(e[1].tcv); }, 0);
+
+  // Stage rollup
+  var stages = {};
+  oppList.forEach(function(e) {
+    var m = e[1].meddpicc;
+    var score = m ? scoreMEDDPICC(m) : 0;
+    var stage = score >= 90 ? "Closing" : score >= 70 ? "Negotiation" : score >= 50 ? "Evaluation" : score >= 25 ? "Discovery" : "Prospecting";
+    if (!stages[stage]) stages[stage] = [];
+    stages[stage].push({ key: e[0], name: e[1].name || e[0], acv: e[1].acv, score: score });
+  });
+
+  // Merged stakeholders across all opps
+  var allStakeholders = [];
+  var seenNames = {};
+  oppList.forEach(function(e) {
+    var m = e[1].meddpicc;
+    if (m && m.stakeholders) {
+      m.stakeholders.forEach(function(s) {
+        var key = (s.name || "").toLowerCase();
+        if (!seenNames[key]) {
+          seenNames[key] = true;
+          allStakeholders.push(Object.assign({}, s, { fromOpp: e[1].name }));
+        }
+      });
+    }
+    if (m && m.economicBuyer && m.economicBuyer.name) {
+      var ebKey = m.economicBuyer.name.toLowerCase();
+      if (!seenNames[ebKey]) {
+        seenNames[ebKey] = true;
+        allStakeholders.push({ name: m.economicBuyer.name, role: m.economicBuyer.title, influence: "Economic Buyer", notes: m.economicBuyer.notes, fromOpp: e[1].name });
+      }
+    }
+    if (m && m.champion && m.champion.name) {
+      var cKey = m.champion.name.toLowerCase();
+      if (!seenNames[cKey]) {
+        seenNames[cKey] = true;
+        allStakeholders.push({ name: m.champion.name, role: m.champion.title, influence: "Champion", notes: m.champion.whyTheyHelp, fromOpp: e[1].name });
+      }
+    }
+  });
+
+  // Products across all opps (white space analysis)
+  var PRODUCT_CATALOG = [
+    { id: "CXone", label: "NICE CXone", category: "Platform" },
+    { id: "Cognigy AI", label: "Cognigy AI", category: "AI" },
+    { id: "WFM", label: "WFM", category: "Workforce" },
+    { id: "QM", label: "Quality Management", category: "Workforce" },
+    { id: "Recording", label: "Recording", category: "Compliance" },
+    { id: "Analytics", label: "Analytics", category: "Insights" },
+    { id: "CXone Mpower", label: "CXone Mpower", category: "Platform" },
+    { id: "Virtual Agents", label: "Virtual Agents", category: "AI" },
+    { id: "Agent Assist", label: "Agent Assist", category: "AI" },
+    { id: "SmartReach", label: "SmartReach", category: "Outbound" },
+    { id: "Enlighten AI", label: "Enlighten AI", category: "AI" },
+    { id: "Autopilot", label: "Autopilot", category: "AI" }
+  ];
+  var soldProducts = {};
+  oppList.forEach(function(e) {
+    (e[1].products || []).forEach(function(p) { soldProducts[p] = (soldProducts[p] || []);  soldProducts[p].push(e[1].name); });
+  });
+
+  // ── News & Lawsuits (live web search) ──
+  var _news = useState(account._cachedNews || null), news = _news[0], setNews = _news[1];
+  var _newsLoading = useState(false), newsLoading = _newsLoading[0], setNewsLoading = _newsLoading[1];
+  var _newsError = useState(null), newsError = _newsError[0], setNewsError = _newsError[1];
+
+  function fetchNews() {
+    if (!account.name) return;
+    setNewsLoading(true);
+    setNewsError(null);
+    var key = "";
+    try { key = localStorage.getItem("salesai_api_key") || ""; } catch(e) {}
+    if (!key) { setNewsError("Set API key in settings to fetch news."); setNewsLoading(false); return; }
+
+    var prompt = "Research the company \"" + account.name + "\" and provide a structured JSON response with the following sections. Use your training knowledge (you do NOT need to browse the web). Return ONLY valid JSON:\n{\n  \"companyOverview\": \"2-3 sentence company description including industry, size, HQ\",\n  \"financials\": {\n    \"revenue\": \"latest annual revenue or null\",\n    \"employees\": \"employee count or null\",\n    \"marketCap\": \"market cap if public or null\",\n    \"ticker\": \"stock ticker or null\",\n    \"fiscalYear\": \"latest fiscal year or null\",\n    \"growthRate\": \"YoY revenue growth or null\",\n    \"keyMetrics\": [\"other financial facts\"]\n  },\n  \"recentNews\": [{\"headline\": \"title\", \"summary\": \"1-2 sentences\", \"date\": \"approximate date\", \"relevance\": \"why this matters for selling CX/AI/WFM\"}],\n  \"lawsuits\": [{\"title\": \"case name\", \"summary\": \"what it's about\", \"date\": \"date\", \"status\": \"active|settled|dismissed\", \"relevance\": \"sales implication\"}],\n  \"techStack\": [\"known technology platforms they use\"],\n  \"competitors\": [\"their main competitors\"],\n  \"cxInsights\": \"what we know about their contact center or customer experience strategy\"\n}";
+
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
+      body: JSON.stringify({model: "claude-sonnet-4-20250514", max_tokens: 4096, messages: [{role: "user", content: prompt}]})
+    }).then(function(r) { return r.json(); })
+    .then(function(data) {
+      var rt = data.content && data.content[0] && data.content[0].text || "";
+      var js = rt; var m = rt.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (m) js = m[1];
+      try {
+        var parsed = JSON.parse(js.trim());
+        setNews(parsed);
+        setNewsLoading(false);
+      } catch(e) { setNewsError("Parse error: " + e.message); setNewsLoading(false); }
+    }).catch(function(err) { setNewsError("Error: " + err.message); setNewsLoading(false); });
+  }
+
+  // Card style helpers
+  var card = function(extra) { return Object.assign({ background: "#fff", borderRadius: 12, padding: "20px 24px", border: "1px solid #e2e8f0", marginBottom: 16 }, extra || {}); };
+  var sectionTitle = function(text, icon) {
+    return React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#1e293b", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 8 } }, icon || null, text);
+  };
+  var badge = function(text, color, bg) {
+    return React.createElement("span", { style: { display: "inline-block", fontSize: 11, fontWeight: 700, color: color, background: bg, padding: "2px 10px", borderRadius: 12 } }, text);
+  };
+
+  return React.createElement("div", { style: { padding: 20, maxWidth: 1100, margin: "0 auto" } },
+
+    // ── HEADER ──
+    React.createElement("div", { style: { marginBottom: 24 } },
+      React.createElement("h1", { style: { fontSize: 28, fontWeight: 800, color: "#0f172a", margin: "0 0 4px", letterSpacing: "-0.5px" } }, account.name || "Account"),
+      React.createElement("p", { style: { fontSize: 14, color: "#64748b", margin: 0 } },
+        oppList.length + " Opportunit" + (oppList.length === 1 ? "y" : "ies") + " | ",
+        "Pipeline: $" + (totalACV >= 1000000 ? (totalACV / 1000000).toFixed(2) + "M" : totalACV.toLocaleString()),
+        totalTCV > 0 ? " | TCV: $" + (totalTCV >= 1000000 ? (totalTCV / 1000000).toFixed(2) + "M" : totalTCV.toLocaleString()) : ""
+      )
+    ),
+
+    // ── PIPELINE ROLLUP ──
+    React.createElement("div", { style: card() },
+      sectionTitle("Pipeline Rollup", React.createElement(ITrend, { size: 16, color: "#2563eb" })),
+      React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 16 } },
+        Object.entries(stages).map(function(entry) {
+          var stageColors = { Closing: "#10b981", Negotiation: "#3b82f6", Evaluation: "#f59e0b", Discovery: "#8b5cf6", Prospecting: "#94a3b8" };
+          return React.createElement("div", { key: entry[0], style: { background: "#f8fafc", borderRadius: 8, padding: "12px 16px", borderLeft: "3px solid " + (stageColors[entry[0]] || "#94a3b8") } },
+            React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 4 } }, entry[0].toUpperCase()),
+            React.createElement("div", { style: { fontSize: 20, fontWeight: 800, color: "#0f172a" } }, entry[1].length),
+            entry[1].map(function(opp) {
+              return React.createElement("div", { key: opp.key, style: { fontSize: 12, color: "#475569", marginTop: 4, cursor: "pointer", textDecoration: "underline dotted" },
+                onClick: function() { setOppKey(opp.key); setDocKey("dashboard"); }
+              }, opp.name + (opp.acv ? " (" + opp.acv + ")" : ""));
+            })
+          );
+        })
+      ),
+      // Opp table
+      React.createElement("table", { style: { width: "100%", fontSize: 13, borderCollapse: "collapse" } },
+        React.createElement("thead", null, React.createElement("tr", null,
+          ["Opportunity", "ACV", "Products", "MEDDPICC", "Stage"].map(function(h) {
+            return React.createElement("th", { key: h, style: { textAlign: "left", padding: "8px 10px", borderBottom: "2px solid #e2e8f0", fontSize: 11, fontWeight: 700, color: "#64748b" } }, h);
+          })
+        )),
+        React.createElement("tbody", null, oppList.map(function(entry) {
+          var oKey = entry[0], opp = entry[1];
+          var score = opp.meddpicc ? scoreMEDDPICC(opp.meddpicc) : 0;
+          var stage = score >= 90 ? "Closing" : score >= 70 ? "Negotiation" : score >= 50 ? "Evaluation" : score >= 25 ? "Discovery" : "Prospecting";
+          return React.createElement("tr", { key: oKey, style: { cursor: "pointer" }, onClick: function() { setOppKey(oKey); setDocKey("dashboard"); } },
+            React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9", fontWeight: 600, color: "#1d4ed8" } }, opp.name || oKey),
+            React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9" } }, opp.acv || "—"),
+            React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9", fontSize: 12, color: "#64748b" } }, (opp.products || []).join(", ") || "—"),
+            React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9" } },
+              React.createElement("div", { style: { width: 60, height: 6, borderRadius: 3, background: "#e2e8f0", overflow: "hidden" } },
+                React.createElement("div", { style: { width: score + "%", height: "100%", borderRadius: 3, background: score >= 80 ? "#10b981" : score >= 50 ? "#f59e0b" : "#ef4444" } })
+              )
+            ),
+            React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9" } }, badge(stage, stage === "Closing" ? "#065f46" : "#475569", stage === "Closing" ? "#d1fae5" : "#f1f5f9"))
+          );
+        }))
+      )
+    ),
+
+    // ── WHITE SPACE ANALYSIS ──
+    React.createElement("div", { style: card() },
+      sectionTitle("White Space Analysis", React.createElement(ITarget, { size: 16, color: "#8b5cf6" })),
+      React.createElement("p", { style: { fontSize: 12, color: "#64748b", margin: "0 0 12px" } }, "Products sold vs. available catalog. Green = active opportunity. Gray = white space to pursue."),
+      React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 } },
+        PRODUCT_CATALOG.map(function(prod) {
+          var sold = soldProducts[prod.id];
+          var isSold = !!sold;
+          return React.createElement("div", { key: prod.id, style: { padding: "10px 14px", borderRadius: 8, border: "1px solid " + (isSold ? "#86efac" : "#e2e8f0"), background: isSold ? "#f0fdf4" : "#fafafa", position: "relative" } },
+            React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: isSold ? "#166534" : "#94a3b8" } }, prod.label),
+            React.createElement("div", { style: { fontSize: 10, color: "#94a3b8", marginTop: 2 } }, prod.category),
+            isSold ? React.createElement("div", { style: { fontSize: 10, color: "#16a34a", marginTop: 4 } }, sold.join(", ")) :
+              React.createElement("div", { style: { fontSize: 10, color: "#cbd5e1", marginTop: 4, fontStyle: "italic" } }, "Not in pipeline")
+          );
+        })
+      )
+    ),
+
+    // ── STAKEHOLDER MAP (rolled up) ──
+    allStakeholders.length > 0 && React.createElement("div", { style: card() },
+      sectionTitle("Key Stakeholders (Across All Opportunities)", React.createElement(IGlobe, { size: 16, color: "#f59e0b" })),
+      React.createElement("table", { style: { width: "100%", fontSize: 12, borderCollapse: "collapse" } },
+        React.createElement("thead", null, React.createElement("tr", null,
+          ["Name", "Role", "Influence", "Opportunity", "Notes"].map(function(h) {
+            return React.createElement("th", { key: h, style: { textAlign: "left", padding: "6px 8px", borderBottom: "1px solid #e2e8f0", fontSize: 10, fontWeight: 700, color: "#94a3b8" } }, h);
+          })
+        )),
+        React.createElement("tbody", null, allStakeholders.slice(0, 20).map(function(s, i) {
+          var infColors = { Champion: "#10b981", "Economic Buyer": "#3b82f6", "Technical Evaluator": "#8b5cf6", Blocker: "#ef4444" };
+          return React.createElement("tr", { key: i },
+            React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc", fontWeight: 600, color: "#1e293b" } }, s.name),
+            React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc", color: "#64748b" } }, s.role),
+            React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc" } }, badge(s.influence, infColors[s.influence] || "#475569", (infColors[s.influence] || "#94a3b8") + "18")),
+            React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc", color: "#64748b", fontSize: 11 } }, s.fromOpp),
+            React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc", color: "#94a3b8", fontSize: 11 } }, s.notes || "—")
+          );
+        }))
+      )
+    ),
+
+    // ── FINANCIALS & NEWS ──
+    React.createElement("div", { style: card() },
+      React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 } },
+        sectionTitle("Company Intelligence", React.createElement(IStar, { size: 16, color: "#2563eb" })),
+        React.createElement("button", {
+          onClick: fetchNews,
+          disabled: newsLoading,
+          style: { padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 6, border: "1px solid #2563eb", background: newsLoading ? "#e2e8f0" : "#eff6ff", color: "#2563eb", cursor: newsLoading ? "default" : "pointer" }
+        }, newsLoading ? "Researching..." : news ? "Refresh Intel" : "Fetch Company Intel")
+      ),
+      newsError && React.createElement("p", { style: { color: "#ef4444", fontSize: 12 } }, newsError),
+      !news && !newsLoading && !newsError && React.createElement("p", { style: { color: "#94a3b8", fontSize: 13, textAlign: "center", padding: "20px 0" } }, "Click \"Fetch Company Intel\" to pull financials, news, lawsuits, and tech stack for " + account.name + "."),
+
+      // Company Overview
+      news && news.companyOverview && React.createElement("div", { style: { background: "#f8fafc", borderRadius: 8, padding: "12px 16px", marginBottom: 14 } },
+        React.createElement("p", { style: { fontSize: 13, color: "#334155", margin: 0, lineHeight: 1.6 } }, news.companyOverview)
+      ),
+
+      // Financials
+      news && news.financials && React.createElement("div", { style: { marginBottom: 16 } },
+        React.createElement("h4", { style: { fontSize: 12, fontWeight: 700, color: "#64748b", marginBottom: 8 } }, "FINANCIALS"),
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 } },
+          [
+            { label: "Revenue", value: news.financials.revenue },
+            { label: "Employees", value: news.financials.employees },
+            { label: "Market Cap", value: news.financials.marketCap },
+            { label: "Ticker", value: news.financials.ticker },
+            { label: "Growth", value: news.financials.growthRate },
+            { label: "Fiscal Year", value: news.financials.fiscalYear }
+          ].filter(function(f) { return f.value; }).map(function(f) {
+            return React.createElement("div", { key: f.label, style: { background: "#f0f7ff", borderRadius: 8, padding: "8px 12px" } },
+              React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: "#64748b" } }, f.label.toUpperCase()),
+              React.createElement("div", { style: { fontSize: 15, fontWeight: 700, color: "#1e293b", marginTop: 2 } }, f.value)
+            );
+          })
+        ),
+        news.financials.keyMetrics && news.financials.keyMetrics.length > 0 && React.createElement("div", { style: { marginTop: 8 } },
+          news.financials.keyMetrics.map(function(m, i) {
+            return React.createElement("span", { key: i, style: { display: "inline-block", fontSize: 11, color: "#475569", background: "#f1f5f9", padding: "3px 10px", borderRadius: 4, marginRight: 6, marginBottom: 4 } }, m);
+          })
+        )
+      ),
+
+      // Recent News
+      news && news.recentNews && news.recentNews.length > 0 && React.createElement("div", { style: { marginBottom: 16 } },
+        React.createElement("h4", { style: { fontSize: 12, fontWeight: 700, color: "#64748b", marginBottom: 8 } }, "RECENT NEWS"),
+        news.recentNews.map(function(n, i) {
+          return React.createElement("div", { key: i, style: { padding: "10px 14px", borderLeft: "3px solid #3b82f6", background: "#f8fafc", borderRadius: "0 8px 8px 0", marginBottom: 8 } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline" } },
+              React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: "#1e293b" } }, n.headline),
+              n.date && React.createElement("span", { style: { fontSize: 10, color: "#94a3b8", flexShrink: 0, marginLeft: 8 } }, n.date)
+            ),
+            React.createElement("p", { style: { fontSize: 12, color: "#475569", margin: "4px 0 0", lineHeight: 1.5 } }, n.summary),
+            n.relevance && React.createElement("p", { style: { fontSize: 11, color: "#2563eb", margin: "4px 0 0", fontStyle: "italic" } }, "Sales angle: " + n.relevance)
+          );
+        })
+      ),
+
+      // Lawsuits
+      news && news.lawsuits && news.lawsuits.length > 0 && React.createElement("div", { style: { marginBottom: 16 } },
+        React.createElement("h4", { style: { fontSize: 12, fontWeight: 700, color: "#ef4444", marginBottom: 8 } }, "LAWSUITS & LEGAL"),
+        news.lawsuits.map(function(l, i) {
+          var statusColor = l.status === "active" ? "#ef4444" : l.status === "settled" ? "#f59e0b" : "#94a3b8";
+          return React.createElement("div", { key: i, style: { padding: "10px 14px", borderLeft: "3px solid " + statusColor, background: "#fef2f2", borderRadius: "0 8px 8px 0", marginBottom: 8 } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline" } },
+              React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: "#1e293b" } }, l.title),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 700, color: statusColor, textTransform: "uppercase" } }, l.status)
+            ),
+            React.createElement("p", { style: { fontSize: 12, color: "#475569", margin: "4px 0 0" } }, l.summary),
+            l.relevance && React.createElement("p", { style: { fontSize: 11, color: "#b91c1c", margin: "4px 0 0", fontStyle: "italic" } }, "Impact: " + l.relevance)
+          );
+        })
+      ),
+
+      // Tech Stack & CX Insights
+      news && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } },
+        news.techStack && news.techStack.length > 0 && React.createElement("div", null,
+          React.createElement("h4", { style: { fontSize: 12, fontWeight: 700, color: "#64748b", marginBottom: 8 } }, "TECH STACK"),
+          React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4 } },
+            news.techStack.map(function(t, i) {
+              return React.createElement("span", { key: i, style: { fontSize: 11, color: "#475569", background: "#f1f5f9", padding: "3px 10px", borderRadius: 4 } }, t);
+            })
+          )
+        ),
+        news.cxInsights && React.createElement("div", null,
+          React.createElement("h4", { style: { fontSize: 12, fontWeight: 700, color: "#64748b", marginBottom: 8 } }, "CX INSIGHTS"),
+          React.createElement("p", { style: { fontSize: 12, color: "#475569", lineHeight: 1.6 } }, news.cxInsights)
+        )
+      )
+    )
+  );
+}
+
 const DOCS = [{
   key: "dashboard",
   label: "Dashboard",
@@ -5797,6 +6370,28 @@ function saveApiKey(k) {
 }
 
 // ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ App ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ
+
+// Migration & Account Model
+function migrateToAccountModel(flatDeals) {
+  if (!flatDeals || Object.keys(flatDeals).length === 0) return {};
+  const firstVal = Object.values(flatDeals)[0];
+  if (firstVal && firstVal.type === 'account') return flatDeals;
+  const result = {};
+  for (const [key, dealData] of Object.entries(flatDeals)) {
+    result[key] = {
+      type: 'account',
+      name: dealData.name || key,
+      opportunities: {
+        [key + '_primary']: {
+          ...dealData,
+          type: 'opportunity'
+        }
+      }
+    };
+  }
+  return result;
+}
+
 function App() {
   const {
     useState,
@@ -5805,9 +6400,10 @@ function App() {
   } = React;
   const initDeals = () => {
     const saved = loadAllDeals();
-    if (Object.keys(saved).length > 0) return saved;
-    // First-time: seed with sample deals (no MEDDPICC yet ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ user needs to analyze)
-    return {
+    const migrated = migrateToAccountModel(saved);
+    if (Object.keys(migrated).length > 0) return migrated;
+    // First-time: seed with sample accounts with opportunities
+    return migrateToAccountModel({
       hertz: {
         name: "Hertz",
         acv: "$2.06M",
@@ -5828,10 +6424,24 @@ function App() {
         generated: {},
         meddpicc: null
       }
-    };
+    });
   };
   const [allDeals, setAllDeals] = useState(initDeals);
-  const [dealKey, setDealKey] = useState(Object.keys(initDeals())[0] || "hertz");
+  const [accountKey, setAccountKey] = useState(() => {
+    const keys = Object.keys(initDeals());
+    return keys[0] || "";
+  });
+  const [oppKey, setOppKey] = useState(() => {
+    const deals = initDeals();
+    const firstAcct = Object.keys(deals)[0];
+    if (!firstAcct) return "";
+    const opps = deals[firstAcct].opportunities || {};
+    return Object.keys(opps)[0] || "";
+  });
+  const [expandedAccounts, setExpandedAccounts] = useState(() => {
+    const deals = initDeals();
+    return Object.keys(deals).reduce((a, k) => ({ ...a, [k]: true }), {});
+  });
   const [docKey, setDocKey] = useState("dashboard");
   const [generating, setGenerating] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -5873,8 +6483,10 @@ function App() {
     expansionPotential: "",
     updates: []
   };
-  const deal = dealKey ? allDeals[dealKey] || emptyDeal : emptyDeal;
-window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDeals:allDeals,fileDataRef:fileDataRef};
+  const account = accountKey ? (allDeals[accountKey] || null) : null;
+  const deal = (account && oppKey && account.opportunities) ? (account.opportunities[oppKey] || emptyDeal) : emptyDeal;
+  const fileRefKey = accountKey + "/" + oppKey;
+window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey,allDeals:allDeals,fileDataRef:fileDataRef};
 
   useEffect(function () {
     saveAllDeals(allDeals);
@@ -5886,32 +6498,45 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     }, 3000);
   };
   const updateDeal = patch => {
-    if (!dealKey) return;
-    setAllDeals(function (prev) {
-      return {
-        ...prev,
-        [dealKey]: {
-          ...prev[dealKey],
-          ...patch
+    if (!accountKey || !oppKey) return;
+    setAllDeals(prev => ({
+      ...prev,
+      [accountKey]: {
+        ...prev[accountKey],
+        opportunities: {
+          ...prev[accountKey].opportunities,
+          [oppKey]: { ...prev[accountKey].opportunities[oppKey], ...patch }
         }
-      };
-    });
+      }
+    }));
   };
   const saveDeal = () => {
-    const key = deal.name.trim().toLowerCase().replace(/\s+/g, "_") || "deal_" + Date.now();
-    setAllDeals(function (prev) {
-      return {
-        ...prev,
-        [key]: {
-          ...deal
-        }
-      };
-    });
-    if (dealKey !== key) setDealKey(key);
-    showToast("Deal saved \u2713");
+    if (!accountKey || !oppKey) {
+      showToast("No account or opportunity selected");
+      return;
+    }
+    const newOppKey = deal.name.trim().toLowerCase().replace(/\s+/g, "_") || oppKey;
+    if (newOppKey !== oppKey) {
+      setAllDeals(prev => {
+        const opps = { ...prev[accountKey].opportunities };
+        const opp = opps[oppKey];
+        delete opps[oppKey];
+        opps[newOppKey] = opp;
+        return {
+          ...prev,
+          [accountKey]: {
+            ...prev[accountKey],
+            opportunities: opps
+          }
+        };
+      });
+      setOppKey(newOppKey);
+    }
+    showToast("Opportunity saved \u2713");
   };
-  const newDeal = () => {
+  const newAccount = () => {
     const tempKey = "new_" + Date.now();
+    const tempOppKey = tempKey + "_primary";
     setAllDeals(function (prev) {
       const cleaned = Object.fromEntries(Object.entries(prev).filter(function (e) {
         return !e[0].startsWith("new_");
@@ -5919,11 +6544,42 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       return {
         ...cleaned,
         [tempKey]: {
-          ...emptyDeal
+          type: 'account',
+          name: "New Account",
+          opportunities: {
+            [tempOppKey]: {
+              type: 'opportunity',
+              ...emptyDeal
+            }
+          }
         }
       };
     });
-    setDealKey(tempKey);
+    setAccountKey(tempKey);
+    setOppKey(tempOppKey);
+    setDocKey("dashboard");
+  };
+
+  const newOpportunity = () => {
+    if (!accountKey) {
+      showToast("Select an account first");
+      return;
+    }
+    const tempOppKey = "new_" + Date.now();
+    setAllDeals(prev => ({
+      ...prev,
+      [accountKey]: {
+        ...prev[accountKey],
+        opportunities: {
+          ...prev[accountKey].opportunities,
+          [tempOppKey]: {
+            type: 'opportunity',
+            ...emptyDeal
+          }
+        }
+      }
+    }));
+    setOppKey(tempOppKey);
     setDocKey("dashboard");
   };
   const removeDoc = i => updateDeal({
@@ -5931,20 +6587,53 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       return x !== i;
     })
   });
-  const deleteDeal = key => {
-    if (!confirm("Delete \"" + (allDeals[key] || {}).name + "\"? This cannot be undone.")) return;
+  const deleteAccount = accKey => {
+    if (!confirm("Delete \"" + (allDeals[accKey] || {}).name + "\"? This cannot be undone.")) return;
     setAllDeals(function (prev) {
-      var copy = {
-        ...prev
-      };
-      delete copy[key];
+      var copy = { ...prev };
+      delete copy[accKey];
       return copy;
     });
-    if (dealKey === key) {
+    if (accountKey === accKey) {
       var remaining = Object.keys(allDeals).filter(function (k) {
-        return k !== key;
+        return k !== accKey;
       });
-      setDealKey(remaining.length > 0 ? remaining[0] : "");
+      if (remaining.length > 0) {
+        const newAcct = remaining[0];
+        const opps = allDeals[newAcct].opportunities || {};
+        const newOpp = Object.keys(opps)[0] || "";
+        setAccountKey(newAcct);
+        setOppKey(newOpp);
+      } else {
+        setAccountKey("");
+        setOppKey("");
+      }
+    }
+  };
+
+  const deleteOpportunity = (accKey, oppKey) => {
+    const acct = allDeals[accKey];
+    const opp = acct?.opportunities?.[oppKey];
+    if (!opp) return;
+    if (!confirm("Delete \"" + (opp.name || "Opportunity") + "\"? This cannot be undone.")) return;
+    setAllDeals(prev => {
+      const opps = { ...prev[accKey].opportunities };
+      delete opps[oppKey];
+      return {
+        ...prev,
+        [accKey]: {
+          ...prev[accKey],
+          opportunities: opps
+        }
+      };
+    });
+    if (accountKey === accKey && (oppKey === oppKey)) {
+      var remaining = Object.keys(allDeals[accKey].opportunities).filter(k => k !== oppKey);
+      if (remaining.length > 0) {
+        setOppKey(remaining[0]);
+      } else {
+        setOppKey("");
+      }
     }
   };
   const handleFileInput = async e => {
@@ -5968,26 +6657,35 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
         console.error("Failed to read", f.name, err);
       }
     }
-    if (!fileDataRef.current[dealKey]) fileDataRef.current[dealKey] = [];
-    fileDataRef.current[dealKey] = [...fileDataRef.current[dealKey], ...contents];
+    if (!fileDataRef.current[fileRefKey]) fileDataRef.current[fileRefKey] = [];
+    fileDataRef.current[fileRefKey] = [...fileDataRef.current[fileRefKey], ...contents];
     e.target.value = "";
     showToast(files.length + " file(s) uploaded \u2014 click Analyze Deal to extract intelligence");
   };
+  const analyzeInProgressRef = React.useRef(false);
   const analyzeDeal = async () => {
-    console.log("[Analyze] Starting analysis. dealKey:", dealKey, "driveUrl:", deal.driveUrl, "fileCount:", (fileDataRef.current[dealKey] || []).length);
+    if (analyzeInProgressRef.current) {
+      console.log("[Analyze] Analysis already in progress — ignoring duplicate click");
+      return;
+    }
+    analyzeInProgressRef.current = true;
+    console.log("[Analyze] Starting analysis. fileRefKey:", fileRefKey, "driveUrl:", deal.driveUrl, "fileCount:", (fileDataRef.current[fileRefKey] || []).length);
     if (!apiKey) {
       setSettingsModal(true);
       showToast("Enter your Claude API key first");
+      analyzeInProgressRef.current = false;
       return;
     }
-    let files = fileDataRef.current[dealKey];
+    let files = fileDataRef.current[fileRefKey];
     if ((!files || files.length === 0) && !deal.driveUrl) {
       console.log("[Analyze] No files and no driveUrl — aborting");
       showToast("Upload source files or link a Google Drive folder first");
+      analyzeInProgressRef.current = false;
       return;
     }
     if (!deal.name.trim()) {
       showToast("Enter a Customer Name first");
+      analyzeInProgressRef.current = false;
       return;
     }
     setAnalyzing(true);
@@ -5998,11 +6696,11 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       try {
         const driveFiles = await window.DriveIntegration.fetchDriveFiles(deal.driveUrl, function(s) { setAnalyzeStatus(s); });
         if (driveFiles && driveFiles.length > 0) {
-          if (!fileDataRef.current[dealKey]) fileDataRef.current[dealKey] = [];
-          const existingNames = new Set(fileDataRef.current[dealKey].map(function(f) { return f.name; }));
+          if (!fileDataRef.current[fileRefKey]) fileDataRef.current[fileRefKey] = [];
+          const existingNames = new Set(fileDataRef.current[fileRefKey].map(function(f) { return f.name; }));
           const newFiles = driveFiles.filter(function(f) { return !existingNames.has(f.name); });
           if (newFiles.length > 0) {
-            fileDataRef.current[dealKey] = [...fileDataRef.current[dealKey], ...newFiles];
+            fileDataRef.current[fileRefKey] = [...fileDataRef.current[fileRefKey], ...newFiles];
             const newDocNames = newFiles.map(function(f) { return f.name; }).filter(function(n) { return !deal.docs.includes(n); });
             if (newDocNames.length > 0) {
               updateDeal({ docs: [...deal.docs, ...newDocNames] });
@@ -6016,10 +6714,11 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       }
     }
     // Re-read files after Drive integration may have added new ones
-    files = fileDataRef.current[dealKey] || [];
+    files = fileDataRef.current[fileRefKey] || [];
     if (files.length === 0) {
       showToast("No files found. Check your Drive folder or upload files manually.");
       setAnalyzing(false);
+      analyzeInProgressRef.current = false;
       return;
     }
     setAnalyzeStatus("Preparing " + files.length + " file(s) for analysis...");
@@ -6060,6 +6759,7 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       showToast("Analysis failed: " + err.message);
     }
     setAnalyzing(false);
+    analyzeInProgressRef.current = false;
   };
   const saveDriveUrl = () => {
     const url = driveDraft.trim();
@@ -6085,6 +6785,7 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     return d.key === docKey;
   });
   const isDashboard = docKey === "dashboard";
+  const isAccountDashboard = docKey === "account_dashboard";
   const generate = () => {
     if (!deal.name.trim()) {
       showToast("Enter a Customer Name first");
@@ -6148,10 +6849,11 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       reader.onload = ev => {
         try {
           const d = JSON.parse(ev.target.result);
+          const migrated = migrateToAccountModel(d);
           setAllDeals(function (prev) {
             return {
               ...prev,
-              ...d
+              ...migrated
             };
           });
           showToast("Data imported \u2713");
@@ -6186,9 +6888,9 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     border: "none",
     ...extra
   });
-  const DocView = current.View;
+  const DocView = current ? current.View : null;
   const isMeddpicc = docKey === "meddpicc";
-  const isSpecialView = isDashboard || isMeddpicc;
+  const isSpecialView = isDashboard || isMeddpicc || isAccountDashboard;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -6371,152 +7073,205 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       background: "#2563eb",
       color: "#fff"
     })
-  }, "Save Link")))), sidebar && /*#__PURE__*/React.createElement("aside", {
+  }, "Save Link")))), /*#__PURE__*/React.createElement("aside", {
     style: {
-      width: 224,
+      width: sidebar ? 224 : 52,
+      minWidth: sidebar ? 224 : 52,
       background: "#fff",
       borderRight: "1px solid #e2e8f0",
       display: "flex",
       flexDirection: "column",
       flexShrink: 0,
-      overflow: "auto"
+      overflow: sidebar ? "auto" : "hidden",
+      transition: "width 0.2s ease, min-width 0.2s ease"
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "18px 18px 10px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-      marginBottom: 2
-    }
-  }, /*#__PURE__*/React.createElement(ISparkles, {
-    size: 17,
-    color: "#2563eb"
-  }), /*#__PURE__*/React.createElement("h1", {
-    style: {
-      fontSize: 17,
-      fontWeight: 800,
-      color: "#0f172a",
-      margin: 0,
-      letterSpacing: "-0.3px"
-    }
-  }, "Sales AI")), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 11,
-      color: "#94a3b8",
-      margin: 0,
-      paddingLeft: 25
-    }
-  }, "MEDDPICC-Powered Selling")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "0 14px 10px",
-      display: "flex",
-      gap: 6
-    }
+  },
+  /* Sidebar collapse toggle */
+  /*#__PURE__*/React.createElement("div", {
+    style: { padding: sidebar ? "14px 14px 6px" : "14px 8px 6px", display: "flex", alignItems: "center", justifyContent: sidebar ? "space-between" : "center" }
+  },
+    sidebar ? /*#__PURE__*/React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+      /*#__PURE__*/React.createElement(ISparkles, { size: 17, color: "#2563eb" }),
+      /*#__PURE__*/React.createElement("h1", { style: { fontSize: 17, fontWeight: 800, color: "#0f172a", margin: 0, letterSpacing: "-0.3px" } }, "Sales AI")
+    ) : null,
+    /*#__PURE__*/React.createElement("button", {
+      onClick: function () { setSidebar(function (v) { return !v; }); },
+      title: sidebar ? "Collapse sidebar" : "Expand sidebar",
+      style: { background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: 16, padding: "4px 6px", borderRadius: 4, lineHeight: 1, display: "flex", alignItems: "center" }
+    }, sidebar ? "\u00AB" : "\u00BB")
+  ),
+  sidebar && /*#__PURE__*/React.createElement("p", {
+    style: { fontSize: 11, color: "#94a3b8", margin: 0, padding: "0 14px 8px", paddingLeft: 39 }
+  }, "MEDDPICC-Powered Selling"),
+  /* Buttons row - only when expanded */
+  sidebar && /*#__PURE__*/React.createElement("div", {
+    style: { padding: "0 14px 10px", display: "flex", gap: 6 }
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: newDeal,
-    style: btn({
-      flex: 1,
-      justifyContent: "center",
-      background: "#1e293b",
-      color: "#fff",
-      padding: "9px"
-    })
-  }, /*#__PURE__*/React.createElement(IPlus, {
-    size: 14
-  }), " New Deal"), /*#__PURE__*/React.createElement("button", {
-    onClick: function () {
-      setApiKeyDraft(apiKey);
-      setSettingsModal(true);
-    },
-    style: btn({
-      background: "#f1f5f9",
-      color: "#64748b",
-      padding: "9px"
-    })
+    onClick: newAccount,
+    style: btn({ flex: 1, justifyContent: "center", background: "#1e293b", color: "#fff", padding: "9px" })
+  }, /*#__PURE__*/React.createElement(IPlus, { size: 14 }), " New Account"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () { setApiKeyDraft(apiKey); setSettingsModal(true); },
+    style: btn({ background: "#f1f5f9", color: "#64748b", padding: "9px" })
   }, /*#__PURE__*/React.createElement(IGear, {
     size: 14
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "0 14px 6px",
-      flex: 1
-    }
+  }))),
+  /* Collapsed icon rail */
+  !sidebar && /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 0" }
+  },
+    /*#__PURE__*/React.createElement(ISparkles, { size: 16, color: "#2563eb" }),
+    /*#__PURE__*/React.createElement("div", { style: { width: 20, borderBottom: "1px solid #e2e8f0", margin: "4px 0" } }),
+    Object.entries(allDeals).map(function (entry) {
+      var k = entry[0], a = entry[1];
+      return /*#__PURE__*/React.createElement("button", {
+        key: k,
+        onClick: function () { setAccountKey(k); var opps = a.opportunities || {}; setOppKey(Object.keys(opps)[0] || ""); setSidebar(true); },
+        title: a.name,
+        style: { background: accountKey === k ? "#eff6ff" : "transparent", border: "none", cursor: "pointer", borderRadius: 6, padding: "6px 10px", color: accountKey === k ? "#1d4ed8" : "#64748b", fontSize: 11, fontWeight: 700, width: "100%", textAlign: "center" }
+      }, (a.name || "?").substring(0, 2).toUpperCase());
+    }),
+    /*#__PURE__*/React.createElement("div", { style: { width: 20, borderBottom: "1px solid #e2e8f0", margin: "4px 0" } }),
+    DOCS.slice(0, 6).map(function (d) {
+      return /*#__PURE__*/React.createElement("button", {
+        key: d.key,
+        onClick: function () { setDocKey(d.key); setSidebar(true); },
+        title: d.label,
+        style: { background: docKey === d.key ? "#eff6ff" : "transparent", border: "none", cursor: "pointer", borderRadius: 6, padding: "6px 10px", color: docKey === d.key ? "#1d4ed8" : "#94a3b8", width: "100%" }
+      }, /*#__PURE__*/React.createElement(d.Icon, { size: 14 }));
+    })
+  ),
+  /* Expanded accounts list */
+  sidebar && /*#__PURE__*/React.createElement("div", {
+    style: { padding: "0 14px 6px", flex: 1 }
   }, /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 10,
-      fontWeight: 700,
-      color: "#94a3b8",
-      letterSpacing: 1.5,
-      margin: "0 0 5px"
-    }
-  }, "SAVED DEALS"), Object.entries(allDeals).map(function (entry) {
-    var k = entry[0];
-    var d = entry[1];
+    style: { fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: 1.5, margin: "0 0 5px" }
+  }, "ACCOUNTS"), Object.entries(allDeals).map(function (acctEntry) {
+    var acctKey = acctEntry[0];
+    var acct = acctEntry[1];
+    var isExpanded = expandedAccounts[acctKey];
+    var opps = acct.opportunities || {};
+    var totalACV = (acct.acv || "").replace(/[^0-9.]/g, '');
     return /*#__PURE__*/React.createElement("div", {
-      key: k,
-      style: {
-        display: "flex",
-        alignItems: "center",
-        marginBottom: 2
-      }
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: function () {
-        setDealKey(k);
-        setUpdateText("");
+      key: acctKey,
+      style: {}
+    }, 
+      /*#__PURE__*/React.createElement("div", {
+        style: { display: "flex", alignItems: "center", marginBottom: 2 }
       },
-      style: btn({
-        flex: 1,
-        justifyContent: "flex-start",
-        background: dealKey === k ? "#eff6ff" : "transparent",
-        color: dealKey === k ? "#1d4ed8" : "#475569",
-        padding: "7px 9px",
-        overflow: "hidden"
-      })
-    }, /*#__PURE__*/React.createElement(IFolder, {
-      size: 14
-    }), " ", /*#__PURE__*/React.createElement("span", {
-      style: {
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap"
-      }
-    }, d.name || "New Deal"), d.meddpicc && /*#__PURE__*/React.createElement("span", {
-      style: {
-        marginLeft: "auto",
-        width: 8,
-        height: 8,
-        borderRadius: "50%",
-        background: "#10b981",
-        flexShrink: 0
-      }
-    })), /*#__PURE__*/React.createElement("button", {
-      onClick: function (e) {
-        e.stopPropagation();
-        deleteDeal(k);
-      },
-      title: "Delete deal",
-      style: {
-        background: "transparent",
-        border: "none",
-        cursor: "pointer",
-        padding: "4px",
-        color: "#cbd5e1",
-        display: "flex",
-        flexShrink: 0
-      },
-      onMouseEnter: function (e) {
-        e.target.style.color = "#ef4444";
-      },
-      onMouseLeave: function (e) {
-        e.target.style.color = "#cbd5e1";
-      }
-    }, /*#__PURE__*/React.createElement(ITrash, {
-      size: 12
-    })));
-  })), /*#__PURE__*/React.createElement("div", {
+        /*#__PURE__*/React.createElement("button", {
+          onClick: function () {
+            setExpandedAccounts(prev => ({ ...prev, [acctKey]: !prev[acctKey] }));
+            setAccountKey(acctKey);
+            setDocKey("account_dashboard");
+            setOppKey("");
+            setUpdateText("");
+          },
+          style: btn({
+            flex: 1,
+            justifyContent: "flex-start",
+            background: accountKey === acctKey ? "#eff6ff" : "transparent",
+            color: accountKey === acctKey ? "#1d4ed8" : "#475569",
+            padding: "7px 9px",
+            overflow: "hidden"
+          })
+        }, 
+          /*#__PURE__*/React.createElement("span", {
+            style: { display: "inline-block", width: 14, marginRight: 4, textAlign: "center" }
+          }, isExpanded ? "▼" : "▶"),
+          /*#__PURE__*/React.createElement(IFolder, { size: 14 }), 
+          " ", 
+          /*#__PURE__*/React.createElement("span", {
+            style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }
+          }, acct.name || "New Account")
+        ),
+        /*#__PURE__*/React.createElement("button", {
+          onClick: function (e) {
+            e.stopPropagation();
+            deleteAccount(acctKey);
+          },
+          title: "Delete account",
+          style: {
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            padding: "4px",
+            color: "#cbd5e1",
+            display: "flex",
+            flexShrink: 0
+          },
+          onMouseEnter: function (e) { e.target.style.color = "#ef4444"; },
+          onMouseLeave: function (e) { e.target.style.color = "#cbd5e1"; }
+        }, /*#__PURE__*/React.createElement(ITrash, { size: 12 }))
+      ),
+      isExpanded && Object.entries(opps).map(function (oppEntry) {
+        var oppKey2 = oppEntry[0];
+        var opp = oppEntry[1];
+        return /*#__PURE__*/React.createElement("div", {
+          key: oppKey2,
+          style: { display: "flex", alignItems: "center", marginBottom: 2, marginLeft: 14 }
+        },
+          /*#__PURE__*/React.createElement("button", {
+            onClick: function () {
+              setAccountKey(acctKey);
+              setOppKey(oppKey2);
+              setDocKey("dashboard");
+              setUpdateText("");
+            },
+            style: btn({
+              flex: 1,
+              justifyContent: "flex-start",
+              background: (accountKey === acctKey && oppKey === oppKey2) ? "#dcfce7" : "transparent",
+              color: (accountKey === acctKey && oppKey === oppKey2) ? "#166534" : "#64748b",
+              padding: "6px 9px",
+              overflow: "hidden",
+              fontSize: 12,
+              marginLeft: 0
+            })
+          },
+            /*#__PURE__*/React.createElement("span", {
+              style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }
+            }, opp.name || "Opportunity"),
+            opp.meddpicc && /*#__PURE__*/React.createElement("span", {
+              style: { marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: "#10b981", flexShrink: 0 }
+            })
+          ),
+          /*#__PURE__*/React.createElement("button", {
+            onClick: function (e) {
+              e.stopPropagation();
+              deleteOpportunity(acctKey, oppKey2);
+            },
+            title: "Delete opportunity",
+            style: {
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px",
+              color: "#cbd5e1",
+              display: "flex",
+              flexShrink: 0
+            },
+            onMouseEnter: function (e) { e.target.style.color = "#ef4444"; },
+            onMouseLeave: function (e) { e.target.style.color = "#cbd5e1"; }
+          }, /*#__PURE__*/React.createElement(ITrash, { size: 12 }))
+        );
+      }),
+      isExpanded && /*#__PURE__*/React.createElement("button", {
+        onClick: function () { newOpportunity(); },
+        style: btn({
+          width: "100%",
+          justifyContent: "flex-start",
+          background: "transparent",
+          color: "#7c3aed",
+          padding: "6px 9px",
+          marginBottom: 2,
+          marginLeft: 14,
+          fontSize: 12,
+          fontWeight: 500
+        })
+      }, /*#__PURE__*/React.createElement(IPlus, { size: 12 }), " Opportunity")
+    );
+  })),
+  sidebar && /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "0 14px"
     }
@@ -6545,7 +7300,8 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
     }, /*#__PURE__*/React.createElement(d.Icon, {
       size: 14
     }), " ", d.label);
-  })), /*#__PURE__*/React.createElement("div", {
+  })),
+  sidebar && /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "10px 14px",
       borderTop: "1px solid #f1f5f9",
@@ -6618,7 +7374,14 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       borderRadius: 4,
       lineHeight: 1
     }
-  }, "\u2630"), /*#__PURE__*/React.createElement("input", {
+  }, "\u2630"), isAccountDashboard ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 20,
+      fontWeight: 800,
+      color: "#0f172a",
+      letterSpacing: -0.3
+    }
+  }, account ? account.name : "Account Dashboard") : /*#__PURE__*/React.createElement("input", {
     value: deal.name,
     onChange: function (e) {
       updateDeal({
@@ -6637,7 +7400,7 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       padding: 0,
       letterSpacing: -0.3
     }
-  }), deal.meddpicc && /*#__PURE__*/React.createElement("span", {
+  }), !isAccountDashboard && deal.meddpicc && /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 9,
       fontWeight: 700,
@@ -6692,7 +7455,7 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
         transition: "all 0.15s"
       }
     }, p.label);
-  }))), /*#__PURE__*/React.createElement("div", {
+  }))), !isAccountDashboard && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 4,
@@ -7345,7 +8108,13 @@ window._chatContext={deal:allDeals[dealKey],dealKey:dealKey,apiKey:apiKey,allDea
       color: "#64748b",
       fontSize: 13
     }
-  }, "Generating ", current.label, " for ", deal.name, "...")) : isDashboard ? /*#__PURE__*/React.createElement(DocView, {
+  }, "Generating ", current.label, " for ", deal.name, "...")) : isAccountDashboard && account ? /*#__PURE__*/React.createElement(AccountDashboard, {
+    account: account,
+    allDeals: allDeals,
+    accountKey: accountKey,
+    setOppKey: setOppKey,
+    setDocKey: setDocKey
+  }) : isDashboard ? /*#__PURE__*/React.createElement(DocView, {
     deal: deal,
     updateDeal: updateDeal,
     onNavigate: function (k) {
@@ -7413,6 +8182,8 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
     return accessToken && Date.now() < tokenExpiry;
   }
 
+  let authInProgress = false;
+
   function authenticate() {
     return new Promise(function(resolve, reject) {
       if (isTokenValid()) { resolve(accessToken); return; }
@@ -7420,20 +8191,53 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
         reject(new Error('Google Identity Services not loaded. Please refresh and try again.'));
         return;
       }
-      const client = window.google.accounts.oauth2.initTokenClient({
+      if (authInProgress) {
+        console.log('[DriveAuth] Auth already in progress, waiting...');
+        var waitInterval = setInterval(function() {
+          if (!authInProgress) {
+            clearInterval(waitInterval);
+            if (isTokenValid()) resolve(accessToken);
+            else reject(new Error('Concurrent auth completed but no token'));
+          }
+        }, 500);
+        return;
+      }
+      authInProgress = true;
+      var settled = false;
+      var authTimeout = setTimeout(function() {
+        if (!settled) {
+          settled = true;
+          authInProgress = false;
+          console.error('[DriveAuth] Auth timed out after 60s');
+          reject(new Error('Google auth timed out. Please try again — if a popup appeared, make sure to complete the sign-in.'));
+        }
+      }, 60000);
+      console.log('[DriveAuth] Starting OAuth flow...');
+      var client = window.google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: function(response) {
+          if (settled) return;
+          settled = true;
+          clearTimeout(authTimeout);
+          authInProgress = false;
           if (response.error) {
+            console.error('[DriveAuth] Auth failed:', response.error, response.error_description);
             reject(new Error('Google auth failed: ' + (response.error_description || response.error)));
             return;
           }
           accessToken = response.access_token;
           tokenExpiry = Date.now() + (response.expires_in * 1000) - 60000;
+          console.log('[DriveAuth] Auth succeeded, token valid for ~' + Math.round(response.expires_in / 60) + ' min');
           resolve(accessToken);
         },
         error_callback: function(err) {
-          reject(new Error('Google auth error: ' + (err.message || 'popup blocked or closed')));
+          if (settled) return;
+          settled = true;
+          clearTimeout(authTimeout);
+          authInProgress = false;
+          console.error('[DriveAuth] Auth error:', err);
+          reject(new Error('Google auth error: ' + (err.message || 'popup blocked or closed') + '. Please allow the popup and try again.'));
         }
       });
       client.requestAccessToken({ prompt: '' });
@@ -7658,7 +8462,7 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
   /**
    * Convert app flat format to Supabase format
    */
-  function dealToSupabaseFormat(dealKey, dealData) {
+  function dealToSupabaseFormat(dealKey, dealData, accountKey, oppKey) {
     const now = new Date().toISOString();
 
     // Extract fields that map directly to columns
@@ -7677,6 +8481,8 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
     // Store everything else in pricing JSONB as _appData
     const appDataFields = {
       dealKey,
+      accountKey: accountKey || dealKey,
+      oppKey: oppKey || (dealKey + '_primary'),
       notes: dealData.notes || '',
       driveUrl: dealData.driveUrl || '',
       docs: Array.isArray(dealData.docs) ? dealData.docs : [],
@@ -7837,7 +8643,10 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
       throw new Error('Supabase not initialized');
     }
 
-    console.log(`${LOG_PREFIX} Starting sync of ${Object.keys(allDeals).length} deals to Supabase...`);
+    const totalDeals = Object.keys(allDeals).reduce((sum, accKey) => {
+      return sum + Object.keys((allDeals[accKey].opportunities || {})).length;
+    }, 0);
+    console.log(`${LOG_PREFIX} Starting sync of ${totalDeals} opportunities to Supabase...`);
     restoreDealMapping();
 
     const results = {
@@ -7847,46 +8656,50 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
       errors: []
     };
 
-    for (const [dealKey, dealData] of Object.entries(allDeals)) {
-      try {
-        const supabaseDeal = dealToSupabaseFormat(dealKey, dealData);
-        const existingId = dealKeyToIdMap[dealKey];
+    for (const [accountKey, account] of Object.entries(allDeals)) {
+      if (!account.opportunities) continue;
+      for (const [oppKey, dealData] of Object.entries(account.opportunities)) {
+        const dealKey = accountKey + '/' + oppKey;
+        try {
+          const supabaseDeal = dealToSupabaseFormat(dealKey, dealData, accountKey, oppKey);
+          const existingId = dealKeyToIdMap[dealKey];
 
-        if (existingId) {
-          // Update existing deal
-          await withRetry(async () => {
-            const { error } = await supabaseClient
-              .from('deals')
-              .update(supabaseDeal)
-              .eq('id', existingId);
+          if (existingId) {
+            // Update existing deal
+            await withRetry(async () => {
+              const { error } = await supabaseClient
+                .from('deals')
+                .update(supabaseDeal)
+                .eq('id', existingId);
+
+              if (error) throw error;
+            }, `Updating deal "${dealKey}"`);
+
+            results.updated++;
+            console.log(`${LOG_PREFIX} Updated deal "${dealKey}" (${existingId})`);
+          } else {
+            // Create new deal
+            const { data, error } = await withRetry(async () => {
+              return supabaseClient
+                .from('deals')
+                .insert([supabaseDeal])
+                .select('id');
+            }, `Creating deal "${dealKey}"`);
 
             if (error) throw error;
-          }, `Updating deal "${dealKey}"`);
 
-          results.updated++;
-          console.log(`${LOG_PREFIX} Updated deal "${dealKey}" (${existingId})`);
-        } else {
-          // Create new deal
-          const { data, error } = await withRetry(async () => {
-            return supabaseClient
-              .from('deals')
-              .insert([supabaseDeal])
-              .select('id');
-          }, `Creating deal "${dealKey}"`);
-
-          if (error) throw error;
-
-          if (data && data[0]) {
-            const newId = data[0].id;
-            dealKeyToIdMap[dealKey] = newId;
-            results.created++;
-            console.log(`${LOG_PREFIX} Created deal "${dealKey}" (${newId})`);
+            if (data && data[0]) {
+              const newId = data[0].id;
+              dealKeyToIdMap[dealKey] = newId;
+              results.created++;
+              console.log(`${LOG_PREFIX} Created deal "${dealKey}" (${newId})`);
+            }
           }
+        } catch (err) {
+          results.failed++;
+          results.errors.push({ dealKey, error: err.message });
+          console.error(`${LOG_PREFIX} Failed to sync deal "${dealKey}":`, err);
         }
-      } catch (err) {
-        results.failed++;
-        results.errors.push({ dealKey, error: err.message });
-        console.error(`${LOG_PREFIX} Failed to sync deal "${dealKey}":`, err);
       }
     }
 
@@ -7904,6 +8717,7 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
 
   /**
    * Upload a file to the deal-documents bucket
+   * @param {string} dealKey - Composite key in format "accountKey/oppKey"
    */
   async function uploadFile(dealKey, file) {
     if (!isInitialized) {
@@ -7958,6 +8772,7 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
 
   /**
    * Save a generated document (MAP, Business Case, etc.)
+   * @param {string} dealKey - Composite key in format "accountKey/oppKey"
    */
   async function saveGeneratedDoc(dealKey, docType, title, content) {
     if (!isInitialized) {
@@ -8107,10 +8922,14 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
       const cloudDeals = await window.SupabaseLayer.loadFromSupabase();
       const localDeals = _originalLoadAllDeals();
 
+      // Migrate both to account model if needed
+      const migratedCloud = typeof migrateToAccountModel === 'function' ? migrateToAccountModel(cloudDeals) : cloudDeals;
+      const migratedLocal = typeof migrateToAccountModel === 'function' ? migrateToAccountModel(localDeals) : localDeals;
+
       // Merge: cloud wins for existing deals, local adds new ones
-      const merged = { ...localDeals };
+      const merged = { ...migratedLocal };
       let cloudCount = 0;
-      for (const [key, deal] of Object.entries(cloudDeals)) {
+      for (const [key, deal] of Object.entries(migratedCloud)) {
         merged[key] = deal;
         cloudCount++;
       }
