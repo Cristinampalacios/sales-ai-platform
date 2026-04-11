@@ -4241,8 +4241,12 @@ function QuoteUploadPanel({deal, updateDeal}) {
         method: "POST",
         headers: {"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
         body: JSON.stringify({model: "claude-sonnet-4-20250514", max_tokens: 4096, messages: [{role: "user", content: content}]})
-      }).then(function(r) { return r.json(); })
+      }).then(function(r) {
+        if (!r.ok) return r.json().then(function(err) { throw new Error("API " + r.status + ": " + (err.error && err.error.message || JSON.stringify(err))); });
+        return r.json();
+      })
       .then(function(data) {
+        if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
         var rt = data.content && data.content[0] && data.content[0].text || "";
         var js = rt; var m = rt.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (m) js = m[1];
@@ -4337,7 +4341,7 @@ function QuoteUploadPanel({deal, updateDeal}) {
       style:{border:"2px dashed " + (dragging ? "#10b981" : "#334155"), borderRadius:12, padding:40, textAlign:"center", background:dragging ? "rgba(16,185,129,.08)" : "transparent", transition:"all .2s"}
     },
       React.createElement("p", {style:{color:"#94a3b8", marginBottom:8, fontSize:14}}, analyzing ? "Analyzing..." : "Drag & drop or click to upload your quote"),
-      React.createElement("input", {type:"file", onChange:handleInput, style:{marginTop:8}, disabled:analyzing})
+      React.createElement("input", {type:"file", accept:".pdf,.doc,.docx,.txt,.csv,.xls,.xlsx,.ppt,.pptx", onChange:handleInput, style:{marginTop:8}, disabled:analyzing})
     ),
     files.length > 0 && React.createElement("div", {style:{marginTop:12}},
       files.map(function(f, i) {
@@ -6350,8 +6354,26 @@ const LS_KEY = "salesai_deals_v2";
 const API_KEY_KEY = "salesai_api_key";
 function loadAllDeals() {
   try {
-    return JSON.parse(localStorage.getItem(LS_KEY)) || {};
+    var data = JSON.parse(localStorage.getItem(LS_KEY));
+    if (data && Object.keys(data).length > 0) return data;
+    // Fallback: try backup key if primary is empty
+    var backup = JSON.parse(localStorage.getItem("salesai_deals_backup"));
+    if (backup && Object.keys(backup).length > 0) {
+      console.warn("[SalesAI] Primary storage empty, restored from backup");
+      localStorage.setItem(LS_KEY, JSON.stringify(backup));
+      return backup;
+    }
+    return {};
   } catch (e) {
+    // If primary is corrupt, try backup
+    try {
+      var backup2 = JSON.parse(localStorage.getItem("salesai_deals_backup"));
+      if (backup2 && Object.keys(backup2).length > 0) {
+        console.warn("[SalesAI] Primary storage corrupt, restored from backup");
+        localStorage.setItem(LS_KEY, JSON.stringify(backup2));
+        return backup2;
+      }
+    } catch(e2) {}
     return {};
   }
 }
@@ -6488,8 +6510,18 @@ function App() {
   const fileRefKey = accountKey + "/" + oppKey;
 window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey,allDeals:allDeals,fileDataRef:fileDataRef};
 
+  const [lastSavedAt, setLastSavedAt] = useState(null);
   useEffect(function () {
     saveAllDeals(allDeals);
+    setLastSavedAt(new Date());
+    // Keep a rolling backup under a separate key
+    try { localStorage.setItem("salesai_deals_backup", JSON.stringify(allDeals)); } catch(e) {}
+  }, [allDeals]);
+  // Safety net: persist on tab close / navigate away
+  useEffect(function () {
+    var handler = function () { saveAllDeals(allDeals); };
+    window.addEventListener("beforeunload", handler);
+    return function () { window.removeEventListener("beforeunload", handler); };
   }, [allDeals]);
   const showToast = msg => {
     setToast(msg);
@@ -6516,33 +6548,47 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
       return;
     }
     const newOppKey = deal.name.trim().toLowerCase().replace(/\s+/g, "_") || oppKey;
-    if (newOppKey !== oppKey) {
-      setAllDeals(prev => {
-        const opps = { ...prev[accountKey].opportunities };
-        const opp = opps[oppKey];
+    /* Also rename the account if name changed */
+    const acctName = deal.name ? deal.name.split(" - ")[0] || deal.name : account ? account.name : "";
+    setAllDeals(prev => {
+      const acct = prev[accountKey];
+      if (!acct) return prev;
+      const opps = { ...acct.opportunities };
+      const opp = { ...opps[oppKey], lastSaved: new Date().toISOString() };
+      if (newOppKey !== oppKey) {
         delete opps[oppKey];
-        opps[newOppKey] = opp;
-        return {
-          ...prev,
-          [accountKey]: {
-            ...prev[accountKey],
-            opportunities: opps
-          }
-        };
-      });
-      setOppKey(newOppKey);
-    }
-    showToast("Opportunity saved \u2713");
+      }
+      opps[newOppKey] = opp;
+      return {
+        ...prev,
+        [accountKey]: {
+          ...acct,
+          name: acctName || acct.name,
+          opportunities: opps
+        }
+      };
+    });
+    if (newOppKey !== oppKey) setOppKey(newOppKey);
+    /* Force an explicit localStorage write as safety net */
+    setTimeout(function() {
+      try {
+        var current = JSON.parse(localStorage.getItem("salesai_deals_v2") || "{}");
+        var count = 0;
+        Object.values(current).forEach(function(a) {
+          if (a.opportunities) count += Object.keys(a.opportunities).length;
+        });
+        showToast("Saved \u2713 (" + count + " opportunities in " + Object.keys(current).length + " accounts)");
+      } catch(e) {
+        showToast("Saved \u2713");
+      }
+    }, 100);
   };
   const newAccount = () => {
-    const tempKey = "new_" + Date.now();
+    const tempKey = "acct_" + Date.now();
     const tempOppKey = tempKey + "_primary";
     setAllDeals(function (prev) {
-      const cleaned = Object.fromEntries(Object.entries(prev).filter(function (e) {
-        return !e[0].startsWith("new_");
-      }));
       return {
-        ...cleaned,
+        ...prev,
         [tempKey]: {
           type: 'account',
           name: "New Account",
@@ -7330,7 +7376,9 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
       padding: "6px",
       fontSize: 11
     })
-  }, "\u2193", " Import"))), /*#__PURE__*/React.createElement("main", {
+  }, "\u2193", " Import")), lastSavedAt && sidebar ? React.createElement("div", {
+    style: { textAlign: "center", fontSize: 10, color: "#94a3b8", padding: "4px 0 2px", letterSpacing: 0.2 }
+  }, "\u2714 Auto-saved ", lastSavedAt.toLocaleTimeString()) : null), /*#__PURE__*/React.createElement("main", {
     style: {
       flex: 1,
       overflow: "auto",
