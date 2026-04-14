@@ -7025,7 +7025,32 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
       background: "#2563eb",
       color: "#fff"
     })
-  }, "Save Key")))), driveModal && /*#__PURE__*/React.createElement("div", {
+  }, "Save Key")), React.createElement("div", {
+    style: { marginTop: 24, paddingTop: 16, borderTop: "1px solid #fee2e2" }
+  }, React.createElement("div", {
+    style: { fontSize: 12, fontWeight: 700, color: "#dc2626", marginBottom: 6 }
+  }, "DANGER ZONE"), React.createElement("div", {
+    style: { fontSize: 11, color: "#64748b", marginBottom: 10, lineHeight: 1.4 }
+  }, "Wipe ALL deals from cloud and local storage. Use this to start fresh across all devices. Close the app on other computers first."), React.createElement("button", {
+    onClick: async function() {
+      if (!confirm("Wipe ALL deals from cloud and local storage?\n\nThis will delete everything across all 3 of your computers. Make sure the app is CLOSED on your other PCs first.")) return;
+      try {
+        var url = 'https://lkoqstzhlbujmtgoyeop.supabase.co';
+        var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrb3FzdHpobGJ1am10Z295ZW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzg2OTEsImV4cCI6MjA5MDcxNDY5MX0.M8MRNeFGGRZT70jMvVE61m5UE2v2hK9dLEV02AjHvZU';
+        await fetch(url + '/rest/v1/deals?id=not.is.null', {
+          method: 'DELETE',
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+        });
+        localStorage.clear();
+        sessionStorage.clear();
+        alert("Wiped. Reloading...");
+        setTimeout(function() { window.location.href = window.location.pathname + "?reset=" + Date.now(); }, 500);
+      } catch(e) {
+        alert("Error: " + e.message);
+      }
+    },
+    style: btn({ background: "#dc2626", color: "#fff", width: "100%", justifyContent: "center" })
+  }, "Wipe All Data (Cloud + Local)"))))), driveModal && /*#__PURE__*/React.createElement("div", {
     style: {
       position: "fixed",
       inset: 0,
