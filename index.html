@@ -6614,6 +6614,10 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
   });
   const deleteAccount = accKey => {
     if (!confirm("Delete \"" + (allDeals[accKey] || {}).name + "\"? This cannot be undone.")) return;
+    // Propagate to Supabase so other PCs don't re-upload this account
+    if (window.SupabaseLayer && window.SupabaseLayer.isReady()) {
+      window.SupabaseLayer.deleteFromSupabase(accKey).catch(function(e) { console.error('Cloud delete failed:', e); });
+    }
     setAllDeals(function (prev) {
       var copy = { ...prev };
       delete copy[accKey];
@@ -6641,6 +6645,10 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
     const opp = acct?.opportunities?.[oppKey];
     if (!opp) return;
     if (!confirm("Delete \"" + (opp.name || "Opportunity") + "\"? This cannot be undone.")) return;
+    // Propagate to Supabase
+    if (window.SupabaseLayer && window.SupabaseLayer.isReady()) {
+      window.SupabaseLayer.deleteFromSupabase(accKey + "/" + oppKey).catch(function(e) { console.error('Cloud delete failed:', e); });
+    }
     setAllDeals(prev => {
       const opps = { ...prev[accKey].opportunities };
       delete opps[oppKey];
@@ -8192,7 +8200,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
     updateDocData: function (d) {
       updateDocData(docKey, d);
     }
-  }))));
+  })));
 }
 var _loader = document.getElementById("app-loading");
 if (_loader) _loader.remove();
@@ -8920,12 +8928,55 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
   }
 
   /**
+   * Delete one or more deals from Supabase by dealKey (format: "accountKey/oppKey")
+   * or by accountKey (deletes all opportunities under that account).
+   */
+  async function deleteFromSupabase(keyOrKeys) {
+    if (!isInitialized) return { deleted: 0, error: 'Not initialized' };
+    restoreDealMapping();
+    var keys = Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys];
+    var ids = [];
+    // For each key, resolve to UUIDs. Keys may be "acct/opp" (exact) or "acct" (prefix — all opps).
+    for (var k of keys) {
+      if (dealKeyToIdMap[k]) {
+        ids.push(dealKeyToIdMap[k]);
+      } else {
+        // Prefix match: delete all deals whose mapping key starts with "k/"
+        Object.keys(dealKeyToIdMap).forEach(function(mapKey) {
+          if (mapKey === k || mapKey.indexOf(k + '/') === 0) {
+            ids.push(dealKeyToIdMap[mapKey]);
+          }
+        });
+      }
+    }
+    if (ids.length === 0) {
+      console.log(`${LOG_PREFIX} deleteFromSupabase: no matching IDs for`, keys);
+      return { deleted: 0 };
+    }
+    try {
+      var { error } = await supabaseClient.from('deals').delete().in('id', ids);
+      if (error) throw error;
+      // Clean up local mapping
+      Object.keys(dealKeyToIdMap).forEach(function(mapKey) {
+        if (ids.indexOf(dealKeyToIdMap[mapKey]) >= 0) delete dealKeyToIdMap[mapKey];
+      });
+      localStorage.setItem(DEAL_MAPPING_KEY, JSON.stringify(dealKeyToIdMap));
+      console.log(`${LOG_PREFIX} Deleted ${ids.length} deal(s) from Supabase`);
+      return { deleted: ids.length };
+    } catch (err) {
+      console.error(`${LOG_PREFIX} deleteFromSupabase failed:`, err);
+      return { deleted: 0, error: err.message };
+    }
+  }
+
+  /**
    * Public API
    */
   window.SupabaseLayer = {
     init: initSupabase,
     loadFromSupabase: loadFromSupabase,
     syncToSupabase: syncToSupabase,
+    deleteFromSupabase: deleteFromSupabase,
     uploadFile: uploadFile,
     saveGeneratedDoc: saveGeneratedDoc,
     addDealUpdate: addDealUpdate,
