@@ -26,6 +26,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 <div id="root"></div>
 <script>
 window.onerror=function(m,s,l,c,e){var ld=document.getElementById("app-loading");if(ld)ld.remove();document.getElementById("root").innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#dc2626">Something went wrong</h2><p style="color:#64748b;margin:12px 0">'+m+'</p><button onclick="location.reload()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer">Reload</button></div>'};
+/* Boot-time wipe handler. Visit ?wipe=1 to nuke all local + cloud data and start clean. */
+(function(){
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('wipe') !== '1') return;
+    // 1) Clear all localStorage keys used by the app
+    try { localStorage.clear(); } catch(e) {}
+    // 2) Clear cloud
+    var SUPA_URL = 'https://lkoqstzhlbujmtgoyeop.supabase.co';
+    var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrb3FzdHpobGJ1am10Z295ZW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzg2OTEsImV4cCI6MjA5MDcxNDY5MX0.M8MRNeFGGRZT70jMvVE61m5UE2v2hK9dLEV02AjHvZU';
+    document.getElementById('app-loading').innerHTML = '<p style="color:#2563eb;font-size:14px">Wiping all data...</p>';
+    fetch(SUPA_URL + '/rest/v1/deals?id=neq.00000000-0000-0000-0000-000000000000', {
+      method: 'DELETE',
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY }
+    }).catch(function(){}).finally(function(){
+      try { localStorage.clear(); } catch(e) {}
+      // Strip ?wipe=1 and reload cleanly
+      window.location.replace(window.location.pathname);
+    });
+    // Halt further script execution on this page-load by throwing
+    throw new Error('__WIPE_IN_PROGRESS__');
+  } catch(e) {
+    if (e && e.message === '__WIPE_IN_PROGRESS__') {
+      // Stop rest of boot; reload will happen from fetch.finally
+      document.addEventListener('DOMContentLoaded', function(){}, true);
+      // Re-throw to halt sync execution of following scripts
+      throw e;
+    }
+  }
+})();
 </script>
 <script>/**
  * @license React
