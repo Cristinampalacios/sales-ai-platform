@@ -31,8 +31,17 @@ window.onerror=function(m,s,l,c,e){var ld=document.getElementById("app-loading")
   try {
     var params = new URLSearchParams(window.location.search);
     if (params.get('wipe') !== '1') return;
+    // PRESERVE the Claude API key across wipes — otherwise Analyze silently
+    // fails because apiKey is blank after every wipe.
+    var PRESERVE_KEYS = ['salesai_api_key'];
+    var preserved = {};
+    PRESERVE_KEYS.forEach(function(k){ try { var v = localStorage.getItem(k); if (v) preserved[k] = v; } catch(e) {} });
+    function restorePreserved() {
+      Object.keys(preserved).forEach(function(k){ try { localStorage.setItem(k, preserved[k]); } catch(e) {} });
+    }
     // 1) Clear all localStorage keys used by the app
     try { localStorage.clear(); } catch(e) {}
+    restorePreserved();
     // 2) Clear cloud
     var SUPA_URL = 'https://lkoqstzhlbujmtgoyeop.supabase.co';
     var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrb3FzdHpobGJ1am10Z295ZW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzg2OTEsImV4cCI6MjA5MDcxNDY5MX0.M8MRNeFGGRZT70jMvVE61m5UE2v2hK9dLEV02AjHvZU';
@@ -42,6 +51,7 @@ window.onerror=function(m,s,l,c,e){var ld=document.getElementById("app-loading")
       headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY }
     }).catch(function(){}).finally(function(){
       try { localStorage.clear(); } catch(e) {}
+      restorePreserved();
       // Strip ?wipe=1 and reload cleanly
       window.location.replace(window.location.pathname);
     });
@@ -6735,7 +6745,8 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
     console.log("[Analyze] Starting analysis. fileRefKey:", fileRefKey, "driveUrl:", deal.driveUrl, "fileCount:", (fileDataRef.current[fileRefKey] || []).length);
     if (!apiKey) {
       setSettingsModal(true);
-      showToast("Enter your Claude API key first");
+      setAnalyzing(false);
+      showToast("⚠️ Missing Claude API key — opening Settings. Paste your key and Save.");
       analyzeInProgressRef.current = false;
       return;
     }
@@ -6855,7 +6866,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
       return;
     }
     if (!deal.meddpicc && docKey !== "meddpicc" && docKey !== "dashboard") {
-      showToast("Analyze deal files first to extract MEDDPICC data");
+      showToast("⚠️ Click Analyze first — Generate needs MEDDPICC data extracted from your uploaded files");
       return;
     }
     setGenerating(true);
@@ -7475,19 +7486,28 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
     value: deal.name,
     onChange: function (e) {
       var newName = e.target.value;
-      // Update the opportunity name
+      // Update the opportunity name only. Renaming the account is done via
+      // the Account Dashboard header, not from an opportunity input — otherwise
+      // adding/editing any opp would overwrite the parent account's name.
       updateDeal({ name: newName });
-      // Also update the account name live so the sidebar reflects the rename.
-      // Use the portion before " - " if present, otherwise use the whole name.
-      var acctName = newName.indexOf(" - ") >= 0 ? newName.split(" - ")[0] : newName;
-      if (accountKey && acctName) {
+      // Edge case: if this account still has only ONE opportunity AND it has never
+      // been named (placeholder "New Account"), mirror the first rename up to the
+      // account so a fresh account isn't stuck on "New Account" forever.
+      if (accountKey) {
         setAllDeals(function (prev) {
-          if (!prev[accountKey]) return prev;
-          return { ...prev, [accountKey]: { ...prev[accountKey], name: acctName } };
+          var acct = prev[accountKey];
+          if (!acct) return prev;
+          var opps = acct.opportunities || {};
+          var oppCount = Object.keys(opps).length;
+          var isDefaultAcctName = !acct.name || acct.name === "New Account" || acct.name.indexOf("new_") === 0;
+          if (oppCount <= 1 && isDefaultAcctName) {
+            return { ...prev, [accountKey]: { ...acct, name: newName } };
+          }
+          return prev;
         });
       }
     },
-    placeholder: "Deal Name (type to rename account)",
+    placeholder: "Opportunity Name",
     style: {
       fontSize: 20,
       fontWeight: 800,
