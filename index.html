@@ -6797,9 +6797,14 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
     }
     setAnalyzeStatus("Preparing " + files.length + " file(s) for analysis...");
     try {
+      console.log("[Analyze] Calling Claude API with", files.length, "file(s) for", accountKey, "/", oppKey);
       const result = await callClaudeAPI(apiKey, files, deal.notes, function (s) {
         setAnalyzeStatus(s);
       }, deal.products, deal.updates);
+      console.log("[Analyze] Claude returned result:", result ? Object.keys(result) : result);
+      if (!result || typeof result !== 'object' || Object.keys(result).length === 0) {
+        throw new Error("Claude returned empty MEDDPICC data. Try again with different files.");
+      }
       // Auto-populate deal fields from extraction
       var patch = {
         meddpicc: result,
@@ -6826,10 +6831,31 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
       if (dc.professionalServices && !deal.professionalServices) patch.professionalServices = dc.professionalServices;
       if (dc.expansionPotential && !deal.expansionPotential) patch.expansionPotential = dc.expansionPotential;
       updateDeal(patch);
+      console.log("[Analyze] updateDeal called with meddpicc. Verifying persistence in 500ms...");
+      setTimeout(function(){
+        try {
+          var stored = JSON.parse(localStorage.getItem("salesai_deals_v2")||"{}");
+          var acct = stored[accountKey];
+          var opp = acct && acct.opportunities && acct.opportunities[oppKey];
+          console.log("[Analyze] Post-save verification — meddpicc keys:", opp && opp.meddpicc ? Object.keys(opp.meddpicc) : "MISSING");
+        } catch(e) {}
+      }, 500);
       setAnalyzeStatus("");
-      showToast("MEDDPICC extraction complete \u2014 " + (result.stakeholders || []).length + " stakeholders, " + (result.risks || []).length + " risks identified");
+      showToast("\u2705 MEDDPICC extracted — " + (result.stakeholders || []).length + " stakeholders, " + (result.risks || []).length + " risks. Click any doc + Generate.");
     } catch (err) {
+      console.error("[Analyze] FAILED:", err);
       setAnalyzeStatus("");
+      // Persistent error banner — stays visible until next action
+      var banner = document.getElementById("analyze-error-banner");
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "analyze-error-banner";
+        banner.style.cssText = "position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#fee2e2;color:#991b1b;border:2px solid #dc2626;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:999999;max-width:600px;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer";
+        banner.title = "Click to dismiss";
+        banner.onclick = function(){ banner.remove(); };
+        document.body.appendChild(banner);
+      }
+      banner.textContent = "\u26A0\uFE0F Analyze failed: " + err.message + "  (click to dismiss)";
       showToast("Analysis failed: " + err.message);
     }
     setAnalyzing(false);
