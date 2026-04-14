@@ -6424,29 +6424,8 @@ function App() {
     const saved = loadAllDeals();
     const migrated = migrateToAccountModel(saved);
     if (Object.keys(migrated).length > 0) return migrated;
-    // First-time: seed with sample accounts with opportunities
-    return migrateToAccountModel({
-      hertz: {
-        name: "Hertz",
-        acv: "$2.06M",
-        date: "June 1, 2026",
-        notes: "Direct NiCE relationship. Replacing Cognigy reseller layer.",
-        driveUrl: "",
-        docs: ["The Hertz Corporate Overview.pdf", "call- Employee Engagement.pdf", "se_sa_CONNECT Integration.pdf", "call_with_Connect Team.pdf"],
-        generated: {},
-        meddpicc: null
-      },
-      morgan: {
-        name: "Morgan & Morgan",
-        acv: "$1.8M",
-        date: "August 15, 2026",
-        notes: "Large law firm expanding AI agent capabilities.",
-        driveUrl: "",
-        docs: ["Morgan & Morgan AI Implementation.pdf"],
-        generated: {},
-        meddpicc: null
-      }
-    });
+    // First-time: start with empty state, no seed accounts
+    return {};
   };
   const [allDeals, setAllDeals] = useState(initDeals);
   const [accountKey, setAccountKey] = useState(() => {
