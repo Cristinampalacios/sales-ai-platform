@@ -7411,11 +7411,20 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
   }, account ? account.name : "Account Dashboard") : /*#__PURE__*/React.createElement("input", {
     value: deal.name,
     onChange: function (e) {
-      updateDeal({
-        name: e.target.value
-      });
+      var newName = e.target.value;
+      // Update the opportunity name
+      updateDeal({ name: newName });
+      // Also update the account name live so the sidebar reflects the rename.
+      // Use the portion before " - " if present, otherwise use the whole name.
+      var acctName = newName.indexOf(" - ") >= 0 ? newName.split(" - ")[0] : newName;
+      if (accountKey && acctName) {
+        setAllDeals(function (prev) {
+          if (!prev[accountKey]) return prev;
+          return { ...prev, [accountKey]: { ...prev[accountKey], name: acctName } };
+        });
+      }
     },
-    placeholder: "Deal Name",
+    placeholder: "Deal Name (type to rename account)",
     style: {
       fontSize: 20,
       fontWeight: 800,
