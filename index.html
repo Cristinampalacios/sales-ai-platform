@@ -6542,11 +6542,11 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
     window.addEventListener("beforeunload", handler);
     return function () { window.removeEventListener("beforeunload", handler); };
   }, [allDeals]);
-  const showToast = msg => {
+  const showToast = (msg, duration) => {
     setToast(msg);
     setTimeout(function () {
       setToast("");
-    }, 3000);
+    }, duration || (msg && msg.indexOf("\u26A0") >= 0 ? 6000 : 4000));
   };
   const updateDeal = patch => {
     if (!accountKey || !oppKey) return;
@@ -8722,13 +8722,18 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
         return data || [];
       }, 'Loading deal updates');
 
-      // Convert to app format
+      // Convert to app format — reconstruct the ACCOUNT → OPPORTUNITY hierarchy
+      // directly using the accountKey/oppKey that were saved in _appData, so we
+      // don't rely on migrateToAccountModel (which nests keys runaway-style).
       const allDeals = {};
       for (const dbDeal of deals) {
-        const dealKey = (dbDeal.pricing && dbDeal.pricing._appData && dbDeal.pricing._appData.dealKey)
-          || dbDeal.name.toLowerCase().replace(/\s+/g, '-');
+        const appData = (dbDeal.pricing && dbDeal.pricing._appData) || {};
+        const dealKey = appData.dealKey || dbDeal.name.toLowerCase().replace(/\s+/g, '-');
+        const accountKey = appData.accountKey || dealKey.split('/')[0] || dealKey;
+        const oppKey = appData.oppKey || dealKey.split('/').slice(1).join('/') || (dealKey + '_primary');
 
         const appDeal = dealFromSupabaseFormat(dbDeal);
+        appDeal.type = 'opportunity';
 
         // Attach updates
         const dealUpdates = updates.filter(u => u.deal_id === dbDeal.id);
@@ -8737,8 +8742,21 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
           timestamp: u.timestamp
         }));
 
-        allDeals[dealKey] = appDeal;
-        dealKeyToIdMap[dealKey] = dbDeal.id;
+        // Build account wrapper on demand
+        if (!allDeals[accountKey]) {
+          allDeals[accountKey] = {
+            type: 'account',
+            name: appDeal.name || accountKey,
+            opportunities: {}
+          };
+        }
+        allDeals[accountKey].opportunities[oppKey] = appDeal;
+        // Prefer the first opp's name as account name (avoids "New Account")
+        if (!allDeals[accountKey].name || allDeals[accountKey].name === accountKey) {
+          allDeals[accountKey].name = appDeal.name || accountKey;
+        }
+
+        dealKeyToIdMap[accountKey + '/' + oppKey] = dbDeal.id;
       }
 
       saveDealMapping();
