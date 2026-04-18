@@ -6454,6 +6454,41 @@ function migrateToAccountModel(flatDeals) {
   return result;
 }
 
+// Sanitize deals: merge any accounts whose keys contain '/' (corrupt nested keys)
+// back into the correct base account, preventing runaway duplication.
+function sanitizeDeals(deals) {
+  if (!deals || typeof deals !== 'object') return deals;
+  var clean = {};
+  var mergeCount = 0;
+  for (var acctKey of Object.keys(deals)) {
+    var acct = deals[acctKey];
+    // If account key contains '/', it's a corrupt nested key
+    var baseAcctKey = acctKey.indexOf('/') >= 0 ? acctKey.split('/')[0] : acctKey;
+    if (!clean[baseAcctKey]) {
+      if (baseAcctKey === acctKey) {
+        // Normal account — clone it
+        clean[baseAcctKey] = JSON.parse(JSON.stringify(acct));
+      } else {
+        // Corrupt key and no base account yet — create wrapper
+        clean[baseAcctKey] = { type: 'account', name: acct.name || baseAcctKey, opportunities: {} };
+      }
+    }
+    // Merge opportunities (skip ghost opps where key matches acctKey)
+    var opps = (acct.opportunities || {});
+    for (var oppK of Object.keys(opps)) {
+      var baseOppKey = oppK.indexOf('/') >= 0 ? oppK.split('/')[0] : oppK;
+      // Skip ghost entries where oppKey equals accountKey (sanitizer artifact)
+      if (baseOppKey === baseAcctKey) { mergeCount++; continue; }
+      if (!clean[baseAcctKey].opportunities[baseOppKey]) {
+        clean[baseAcctKey].opportunities[baseOppKey] = opps[oppK];
+      }
+      if (baseAcctKey !== acctKey || baseOppKey !== oppK) mergeCount++;
+    }
+  }
+  if (mergeCount > 0) console.log('[Sanitize] Merged ' + mergeCount + ' corrupt nested key(s) back into base accounts');
+  return clean;
+}
+
 function App() {
   const {
     useState,
@@ -6462,7 +6497,7 @@ function App() {
   } = React;
   const initDeals = () => {
     const saved = loadAllDeals();
-    const migrated = migrateToAccountModel(saved);
+    const migrated = sanitizeDeals(migrateToAccountModel(saved));
     if (Object.keys(migrated).length > 0) return migrated;
     // First-time: start with empty state, no seed accounts
     return {};
@@ -6949,7 +6984,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
       reader.onload = ev => {
         try {
           const d = JSON.parse(ev.target.result);
-          const migrated = migrateToAccountModel(d);
+          const migrated = sanitizeDeals(migrateToAccountModel(d));
           setAllDeals(function (prev) {
             return {
               ...prev,
@@ -8725,12 +8760,23 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
       // Convert to app format — reconstruct the ACCOUNT → OPPORTUNITY hierarchy
       // directly using the accountKey/oppKey that were saved in _appData, so we
       // don't rely on migrateToAccountModel (which nests keys runaway-style).
+      // Helper: strip nested/corrupt keys down to just the base segment
+      function sanitizeKey(key) {
+        if (!key) return key;
+        // If key contains '/', it's a nested corrupt key — take only the first segment
+        var parts = key.split('/');
+        return parts[0];
+      }
+
       const allDeals = {};
       for (const dbDeal of deals) {
         const appData = (dbDeal.pricing && dbDeal.pricing._appData) || {};
         const dealKey = appData.dealKey || dbDeal.name.toLowerCase().replace(/\s+/g, '-');
-        const accountKey = appData.accountKey || dealKey.split('/')[0] || dealKey;
-        const oppKey = appData.oppKey || dealKey.split('/').slice(1).join('/') || (dealKey + '_primary');
+        const rawAccountKey = appData.accountKey || dealKey.split('/')[0] || dealKey;
+        const rawOppKey = appData.oppKey || dealKey.split('/').slice(1).join('/') || (dealKey + '_primary');
+        // Sanitize: strip any nested path corruption
+        const accountKey = sanitizeKey(rawAccountKey);
+        const oppKey = sanitizeKey(rawOppKey) || (accountKey + '_primary');
 
         const appDeal = dealFromSupabaseFormat(dbDeal);
         appDeal.type = 'opportunity';
@@ -8819,9 +8865,20 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
       errors: []
     };
 
-    for (const [accountKey, account] of Object.entries(allDeals)) {
+    for (const [rawAcctKey, account] of Object.entries(allDeals)) {
       if (!account.opportunities) continue;
-      for (const [oppKey, dealData] of Object.entries(account.opportunities)) {
+      // Skip corrupt nested keys — they'll be merged into the base key by sanitizeDeals
+      if (rawAcctKey.indexOf('/') >= 0) {
+        console.log(`${LOG_PREFIX} Skipping corrupt account key: ${rawAcctKey}`);
+        continue;
+      }
+      const accountKey = rawAcctKey;
+      for (const [rawOppKey, dealData] of Object.entries(account.opportunities)) {
+        if (rawOppKey.indexOf('/') >= 0) {
+          console.log(`${LOG_PREFIX} Skipping corrupt opp key: ${rawOppKey}`);
+          continue;
+        }
+        const oppKey = rawOppKey;
         const dealKey = accountKey + '/' + oppKey;
         try {
           const supabaseDeal = dealToSupabaseFormat(dealKey, dealData, accountKey, oppKey);
@@ -9128,9 +9185,10 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
       const cloudDeals = await window.SupabaseLayer.loadFromSupabase();
       const localDeals = _originalLoadAllDeals();
 
-      // Migrate both to account model if needed
-      const migratedCloud = typeof migrateToAccountModel === 'function' ? migrateToAccountModel(cloudDeals) : cloudDeals;
-      const migratedLocal = typeof migrateToAccountModel === 'function' ? migrateToAccountModel(localDeals) : localDeals;
+      // Migrate both to account model if needed, then sanitize to strip nested keys
+      const _sanitize = typeof sanitizeDeals === 'function' ? sanitizeDeals : function(d){return d;};
+      const migratedCloud = _sanitize(typeof migrateToAccountModel === 'function' ? migrateToAccountModel(cloudDeals) : cloudDeals);
+      const migratedLocal = _sanitize(typeof migrateToAccountModel === 'function' ? migrateToAccountModel(localDeals) : localDeals);
 
       // Merge: cloud wins for existing deals, local adds new ones
       const merged = { ...migratedLocal };
