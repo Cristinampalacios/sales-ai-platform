@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Sales AI ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Deal Intelligence Platform</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8fafc;color:#1e293b;overflow-x:hidden}
@@ -601,158 +603,220 @@ function getMotionLabel(deal) {
 const MEDDPICC_PROMPT = "You are a top 1% enterprise sales analyst specializing in contact center CX, AI, and WFM deals for NiCE (NICE CXone) + Cognigy. Analyze ALL uploaded documents thoroughly. These are real deal files ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ meeting transcripts, call recordings, account overviews, emails from Salesforce.\n\nExtract structured MEDDPICC intelligence AND deal commercials. Be specific ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ use real names, real numbers, real quotes from the documents. Do NOT make up data. If something is not found, set it to null.\n\nCRITICAL: For the interactionTimeline, extract EVERY dated interaction you can find. Use exact date formats from the source.\n\nReturn ONLY valid JSON (no markdown, no explanation) with this exact structure:\n{\n  \"dealSummary\": \"2-3 sentence deal overview\",\n  \"dealCommercials\": {\n    \"acv\": \"annual contract value or null\",\n    \"tcv\": \"total contract value or null\",\n    \"contractTerm\": \"e.g. 3 years, 5 years, or null\",\n    \"closeDate\": \"target close date or null\",\n    \"goLiveDate\": \"target go-live date or null\",\n    \"products\": [\"NICE CXone\", \"Cognigy AI\", \"WFM\", \"QM\", \"Recording\", \"Analytics\", \"CXone Mpower\", \"Virtual Agents\", \"Agent Assist\", \"SmartReach\", \"Enlighten AI\", \"Autopilot\"],\n    \"agentSeats\": \"number of agent seats/licenses or null\",\n    \"concurrentUsers\": \"number of concurrent users or null\",\n    \"namedUsers\": \"number of named users or null\",\n    \"monthlyInteractions\": \"monthly interaction volume or null\",\n    \"virtualAgents\": \"number of AI/virtual agents or null\",\n    \"channels\": [\"voice\", \"chat\", \"email\", \"social\", \"SMS\", \"WhatsApp\"],\n    \"currentVendor\": \"incumbent platform vendor or null\",\n    \"currentContractExpiry\": \"when current contract expires or null\",\n    \"billingFrequency\": \"monthly|annual|upfront or null\",\n    \"deploymentModel\": \"cloud|hybrid|on-prem or null\",\n    \"region\": \"geographic region/countries or null\",\n    \"languages\": [\"languages needed for bot/IVR\"],\n    \"integrations\": [\"CRM, ERP, or other systems mentioned\"],\n    \"discount\": \"discount percentage discussed or null\",\n    \"professionalServices\": \"PS/implementation scope or null\",\n    \"expansionPotential\": \"upsell/cross-sell opportunities or null\"\n  },\n  \"metrics\": {\n    \"summary\": \"quantified business impact\",\n    \"details\": [\"specific metric 1\", \"specific metric 2\"]\n  },\n  \"economicBuyer\": {\n    \"name\": \"actual name from docs or null\",\n    \"title\": \"their title\",\n    \"notes\": \"what drives their decision\"\n  },\n  \"decisionCriteria\": [\"specific criteria they evaluate on\"],\n  \"decisionProcess\": {\n    \"steps\": [\"actual steps mentioned in docs\"],\n    \"timeline\": \"expected timeline\",\n    \"paperProcess\": \"procurement/legal steps if mentioned\"\n  },\n  \"identifiedPain\": {\n    \"primary\": \"the #1 pain point\",\n    \"secondary\": [\"other pain points\"],\n    \"businessImpact\": \"quantified impact of the pain\"\n  },\n  \"champion\": {\n    \"name\": \"actual champion name or null\",\n    \"title\": \"their title\",\n    \"whyTheyHelp\": \"what motivates them\",\n    \"influence\": \"their organizational influence\"\n  },\n  \"competition\": [\n    {\"name\": \"competitor name\", \"strengths\": \"their pitch\", \"weaknesses\": \"where we win\"}\n  ],\n  \"stakeholders\": [\n    {\"name\": \"real name\", \"role\": \"title\", \"influence\": \"Champion|Economic Buyer|Technical Evaluator|Gatekeeper|Coach|Blocker\", \"sentiment\": \"Strong Advocate|Supportive|Neutral|Skeptical|Opposed\", \"notes\": \"key detail from docs\"}\n  ],\n  \"interactionTimeline\": [\n    {\"date\": \"exact date from document (e.g. Mar 15, 2026)\", \"event\": \"what happened\", \"participants\": \"who was involved\", \"type\": \"meeting|call|email|milestone|document|decision|internal\", \"keyTakeaway\": \"most important outcome\"}\n  ],\n  \"keyDates\": {\n    \"targetClose\": \"date or null\",\n    \"goLive\": \"date or null\",\n    \"nextMeeting\": \"date or null\",\n    \"contractExpiry\": \"date or null\"\n  },\n  \"acv\": \"dollar amount or null\",\n  \"risks\": [\"specific deal risk from docs\"],\n  \"nextActions\": [\"specific next step from docs\"],\n  \"keyQuotes\": [\"verbatim quote from transcript that reveals pain/urgency\"]\n}\n\nIMPORTANT for dealCommercials.products: Only include products that are ACTUALLY mentioned or relevant to this deal. Common NiCE + Cognigy products: NICE CXone (core platform), Cognigy AI (conversational AI), WFM (Workforce Management), QM (Quality Management), Recording, Analytics, CXone Mpower, Virtual Agents, Agent Assist, SmartReach (outbound), Enlighten AI, Autopilot. Look for mentions of these or similar capabilities.";
 
 // ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Claude API Call ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ
-async function callClaudeAPI(apiKey, fileContents, dealNotes, onStatus, dealProducts, dealUpdates) {
-  const content = [];
-  var totalBase64 = 0;
-  var MAX_BASE64 = 8 * 1024 * 1024; // ~8MB base64 total (safe for Sonnet's context)
+// Single API call with retry on 429
+async function callClaudeAPISingle(apiKey, content, onStatus, maxRetries) {
+  maxRetries = maxRetries || 3;
+  var attempt = 0;
+  while (true) {
+    attempt++;
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, 180000);
+    var resp;
+    try {
+      resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 8192,
+          messages: [{ role: "user", content: content }]
+        })
+      });
+    } catch (fetchErr) {
+      clearTimeout(timeout);
+      if (fetchErr.name === "AbortError") {
+        throw new Error("Request timed out after 3 minutes. Try uploading fewer or smaller files.");
+      }
+      throw new Error("Network error: " + fetchErr.message);
+    }
+    clearTimeout(timeout);
 
-  // Sort files: smaller first so we fit more
+    if (resp.status === 429 && attempt <= maxRetries) {
+      var retryAfter = resp.headers.get("retry-after");
+      var waitSec = retryAfter ? Math.max(parseInt(retryAfter, 10), 30) : Math.min(30 * Math.pow(2, attempt - 1), 120);
+      console.log("[API] Rate limited (attempt " + attempt + "/" + maxRetries + "). Waiting " + waitSec + "s before retry...");
+      if (onStatus) onStatus("Rate limited \u2014 waiting " + waitSec + "s before retry (attempt " + attempt + "/" + maxRetries + ")...");
+      await new Promise(function (r) { setTimeout(r, waitSec * 1000); });
+      continue;
+    }
+
+    if (onStatus) onStatus("Receiving response from Claude...");
+    if (!resp.ok) {
+      var errBody = "";
+      try { errBody = await resp.text(); } catch (e) {}
+      if (resp.status === 413) throw new Error("Files too large for API. Try uploading fewer or smaller files.");
+      if (resp.status === 429) throw new Error("Rate limited after " + maxRetries + " retries. Your API key\u2019s input token limit (" + (errBody.match(/(\d[\d,]+ input tokens)/)?.[1] || "unknown") + "/min) is too low for this request. Try with fewer files or upgrade your API tier.");
+      if (resp.status === 401) throw new Error("Invalid API key. Check Settings.");
+      if (resp.status === 400 && errBody.indexOf("token") >= 0) {
+        throw new Error("Too much content for the API. Try removing some files \u2014 the combined input exceeds the model\u2019s token limit.");
+      }
+      if (resp.status === 400 && errBody.indexOf("100 PDF pages") >= 0) {
+        throw new Error("A PDF exceeds the 100-page API limit. Split the large PDF into smaller files or use a shorter document.");
+      }
+      throw new Error("API error " + resp.status + ": " + errBody.substring(0, 300));
+    }
+
+    var data = await resp.json();
+    if (!data.content || !data.content[0] || !data.content[0].text) {
+      throw new Error("Empty response from Claude. The model may have been unable to process the files.");
+    }
+    var text = data.content[0].text;
+    var jsonStr = text;
+    var jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) jsonStr = jsonMatch[1];
+    jsonStr = jsonStr.trim();
+    try {
+      return JSON.parse(jsonStr);
+    } catch (parseErr) {
+      console.error("Failed to parse Claude response:", text.substring(0, 500));
+      throw new Error("Claude returned invalid JSON. This usually means the response was truncated. Try with fewer files.");
+    }
+  }
+}
+
+// Merge multiple partial MEDDPICC results into one
+function mergeMeddpiccResults(results) {
+  if (results.length === 0) return {};
+  if (results.length === 1) return results[0];
+  var merged = JSON.parse(JSON.stringify(results[0]));
+  for (var i = 1; i < results.length; i++) {
+    var r = results[i];
+    if (!r) continue;
+    ["dealSummary", "acv"].forEach(function (k) {
+      if (!merged[k] && r[k]) merged[k] = r[k];
+    });
+    if (r.dealCommercials) {
+      if (!merged.dealCommercials) merged.dealCommercials = {};
+      Object.keys(r.dealCommercials).forEach(function (k) {
+        var mv = merged.dealCommercials[k], rv = r.dealCommercials[k];
+        if (Array.isArray(rv) && rv.length > 0) {
+          if (!Array.isArray(mv)) merged.dealCommercials[k] = rv;
+          else {
+            var set = new Set(mv.map(function(x) { return typeof x === 'string' ? x : JSON.stringify(x); }));
+            rv.forEach(function(x) { var key = typeof x === 'string' ? x : JSON.stringify(x); if (!set.has(key)) { merged.dealCommercials[k].push(x); set.add(key); } });
+          }
+        } else if (!mv && rv) {
+          merged.dealCommercials[k] = rv;
+        }
+      });
+    }
+    ["metrics", "economicBuyer", "decisionProcess", "identifiedPain", "champion", "keyDates"].forEach(function (k) {
+      if (r[k]) {
+        if (!merged[k] || (typeof merged[k] === 'object' && Object.values(merged[k]).every(function(v) { return v === null; }))) {
+          merged[k] = r[k];
+        } else if (typeof merged[k] === 'object' && typeof r[k] === 'object') {
+          Object.keys(r[k]).forEach(function (sk) {
+            if (!merged[k][sk] && r[k][sk]) merged[k][sk] = r[k][sk];
+          });
+        }
+      }
+    });
+    ["decisionCriteria", "competition", "stakeholders", "interactionTimeline", "risks", "nextActions", "keyQuotes"].forEach(function (k) {
+      if (Array.isArray(r[k]) && r[k].length > 0) {
+        if (!Array.isArray(merged[k])) merged[k] = [];
+        var existing = new Set(merged[k].map(function(x) { return typeof x === 'string' ? x : JSON.stringify(x); }));
+        r[k].forEach(function (item) {
+          var key = typeof item === 'string' ? item : JSON.stringify(item);
+          if (!existing.has(key)) { merged[k].push(item); existing.add(key); }
+        });
+      }
+    });
+  }
+  return merged;
+}
+
+// Main entry: batched analysis with rate-limit-aware scheduling
+async function callClaudeAPI(apiKey, fileContents, dealNotes, onStatus, dealProducts, dealUpdates) {
+  var fileBlocks = [];
+  var totalBase64 = 0;
+  var MAX_BASE64 = 8 * 1024 * 1024;
   var sorted = fileContents.slice().sort(function (a, b) {
     var sa = a.base64 ? a.base64.length : a.text ? a.text.length : 0;
     var sb = b.base64 ? b.base64.length : b.text ? b.text.length : 0;
     return sa - sb;
   });
 
-  // Add each file as a document or text block
   for (const file of sorted) {
     if (file.type === "application/pdf") {
       var pdfSize = file.base64 ? file.base64.length : 0;
-      // Skip single PDFs over 20MB
-      if (pdfSize > 20 * 1024 * 1024) {
-        if (onStatus) onStatus("Skipping " + file.name + " (too large, >15MB)");
-        continue;
-      }
-      // If adding this PDF would exceed our budget, skip it
-      if (totalBase64 + pdfSize > MAX_BASE64) {
-        if (onStatus) onStatus("Skipping " + file.name + " (combined files too large for API)");
-        continue;
-      }
+      if (pdfSize > 20 * 1024 * 1024) { if (onStatus) onStatus("Skipping " + file.name + " (too large, >20MB)"); continue; }
+      if (totalBase64 + pdfSize > MAX_BASE64) { if (onStatus) onStatus("Skipping " + file.name + " (combined files too large for API)"); continue; }
       totalBase64 += pdfSize;
-      if (onStatus) onStatus("Adding PDF: " + file.name + (file.pageCount ? " (" + file.pageCount + " pages)" : ""));
-      content.push({
-        type: "document",
-        source: {
-          type: "base64",
-          media_type: "application/pdf",
-          data: file.base64
-        }
+      fileBlocks.push({
+        block: { type: "document", source: { type: "base64", media_type: "application/pdf", data: file.base64 } },
+        size: pdfSize,
+        name: file.name
       });
     } else {
-      var label = file.originalType === "pdf" ? "Adding PDF (text, " + (file.pageCount || "?") + " pg): " : "Adding: ";
-      if (onStatus) onStatus(label + file.name);
-      content.push({
-        type: "text",
-        text: "--- FILE: " + file.name + " ---\n" + file.text
+      fileBlocks.push({
+        block: { type: "text", text: "--- FILE: " + file.name + " ---\n" + file.text },
+        size: file.text ? file.text.length : 0,
+        name: file.name
       });
     }
   }
-  if (content.length === 0) {
+  if (fileBlocks.length === 0) {
     throw new Error("No valid files to analyze. Files may be too large or unreadable.");
   }
 
-  // Add deal notes if any (legacy)
+  var contextBlocks = [];
   if (dealNotes && dealNotes.trim()) {
-    content.push({
-      type: "text",
-      text: "--- DEAL NOTES ---\n" + dealNotes
-    });
+    contextBlocks.push({ type: "text", text: "--- DEAL NOTES ---\n" + dealNotes });
   }
-
-  // Add deal updates (timestamped activity log from AE)
   if (dealUpdates && dealUpdates.length > 0) {
-    var updatesText = dealUpdates.map(function (u) {
-      return "[" + u.timestamp + "] " + u.text;
-    }).join("\n\n");
-    content.push({
-      type: "text",
-      text: "--- AE DEAL UPDATES (most recent first) ---\nThese are real-time updates logged by the account executive. Treat these as primary intelligence ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ they contain call notes, email summaries, champion feedback, competitive intel, and next steps.\n\n" + updatesText
-    });
+    var updatesText = dealUpdates.map(function (u) { return "[" + u.timestamp + "] " + u.text; }).join("\n\n");
+    contextBlocks.push({ type: "text", text: "--- AE DEAL UPDATES (most recent first) ---\nThese are real-time updates logged by the account executive. Treat these as primary intelligence \u2014 they contain call notes, email summaries, champion feedback, competitive intel, and next steps.\n\n" + updatesText });
     if (onStatus) onStatus("Including " + dealUpdates.length + " deal update(s) as context...");
   }
-
-  // Add product context for sales motion
   if (dealProducts && dealProducts.length > 0) {
-    content.push({
-      type: "text",
-      text: "--- PRODUCT CONTEXT ---\nThis deal involves the following NiCE + Cognigy products: " + dealProducts.join(", ") + ". Tailor your extraction to focus on data points relevant to selling these specific products. For example, if Cognigy AI is selected, focus on self-service metrics, containment rates, bot use cases, and AI readiness. If CXone is selected, focus on agent seats, omnichannel requirements, migration from legacy platforms. If WFM is selected, focus on scheduling, forecasting, adherence, and workforce optimization."
-    });
+    contextBlocks.push({ type: "text", text: "--- PRODUCT CONTEXT ---\nThis deal involves the following NiCE + Cognigy products: " + dealProducts.join(", ") + ". Tailor your extraction to focus on data points relevant to selling these specific products. For example, if Cognigy AI is selected, focus on self-service metrics, containment rates, bot use cases, and AI readiness. If CXone is selected, focus on agent seats, omnichannel requirements, migration from legacy platforms. If WFM is selected, focus on scheduling, forecasting, adherence, and workforce optimization." });
   }
 
-  // Add extraction prompt
-  content.push({
-    type: "text",
-    text: MEDDPICC_PROMPT
-  });
-  if (onStatus) onStatus("Sending " + content.length + " blocks (" + Math.round(totalBase64 / 1024) + " KB) to Claude...");
+  var BATCH_SIZE = 5;
+  if (fileBlocks.length <= BATCH_SIZE) {
+    var content = fileBlocks.map(function (fb) { return fb.block; }).concat(contextBlocks);
+    content.push({ type: "text", text: MEDDPICC_PROMPT });
+    if (onStatus) onStatus("Sending " + fileBlocks.length + " file(s) (" + Math.round(totalBase64 / 1024) + " KB) to Claude...");
+    return await callClaudeAPISingle(apiKey, content, onStatus, 3);
+  }
 
-  // Abort after 3 minutes
-  var controller = new AbortController();
-  var timeout = setTimeout(function () {
-    controller.abort();
-  }, 180000);
-  try {
-    var resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 8192,
-        messages: [{
-          role: "user",
-          content: content
-        }]
-      })
-    });
-  } catch (fetchErr) {
-    clearTimeout(timeout);
-    if (fetchErr.name === "AbortError") {
-      throw new Error("Request timed out after 3 minutes. Try uploading fewer or smaller files.");
-    }
-    throw new Error("Network error: " + fetchErr.message);
+  var batches = [];
+  for (var i = 0; i < fileBlocks.length; i += BATCH_SIZE) {
+    batches.push(fileBlocks.slice(i, i + BATCH_SIZE));
   }
-  clearTimeout(timeout);
-  if (onStatus) onStatus("Receiving response from Claude...");
-  if (!resp.ok) {
-    var errBody = "";
-    try {
-      errBody = await resp.text();
-    } catch (e) {}
-    if (resp.status === 413) throw new Error("Files too large for API. Try uploading fewer or smaller files.");
-    if (resp.status === 429) throw new Error("Rate limited. Wait a minute and try again.");
-    if (resp.status === 401) throw new Error("Invalid API key. Check Settings.");
-    // Token limit errors
-    if (resp.status === 400 && errBody.indexOf("token") >= 0) {
-      throw new Error("Too much content for the API. Try removing some files \u2014 the combined input exceeds the model's token limit.");
-    }
-    // 100-page PDF limit
-    if (resp.status === 400 && errBody.indexOf("100 PDF pages") >= 0) {
-      throw new Error("A PDF exceeds the 100-page API limit. Split the large PDF into smaller files or use a shorter document.");
-    }
-    throw new Error("API error " + resp.status + ": " + errBody.substring(0, 300));
-  }
-  var data = await resp.json();
-  if (!data.content || !data.content[0] || !data.content[0].text) {
-    throw new Error("Empty response from Claude. The model may have been unable to process the files.");
-  }
-  var text = data.content[0].text;
+  console.log("[Analyze] Batching " + fileBlocks.length + " files into " + batches.length + " batches of ~" + BATCH_SIZE);
+  if (onStatus) onStatus("Splitting " + fileBlocks.length + " files into " + batches.length + " batches to stay within API limits...");
 
-  // Parse JSON from response (handle markdown code blocks)
-  var jsonStr = text;
-  var jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (jsonMatch) jsonStr = jsonMatch[1];
-  jsonStr = jsonStr.trim();
-  try {
-    return JSON.parse(jsonStr);
-  } catch (parseErr) {
-    console.error("Failed to parse Claude response:", text.substring(0, 500));
-    throw new Error("Claude returned invalid JSON. This usually means the response was truncated. Try with fewer files.");
+  var partialResults = [];
+  for (var b = 0; b < batches.length; b++) {
+    var batch = batches[b];
+    var batchNames = batch.map(function (fb) { return fb.name; });
+    console.log("[Analyze] Batch " + (b + 1) + "/" + batches.length + ": " + batchNames.join(", "));
+    if (onStatus) onStatus("Analyzing batch " + (b + 1) + " of " + batches.length + " (" + batch.length + " files)...");
+
+    var batchContent = batch.map(function (fb) { return fb.block; }).concat(contextBlocks);
+    batchContent.push({ type: "text", text: "This is batch " + (b + 1) + " of " + batches.length + " file batches from this deal. Extract all MEDDPICC intelligence you can find in THESE files. " + MEDDPICC_PROMPT });
+
+    var result = await callClaudeAPISingle(apiKey, batchContent, onStatus, 4);
+    partialResults.push(result);
+
+    if (b < batches.length - 1) {
+      var waitSec = 65;
+      if (onStatus) onStatus("Batch " + (b + 1) + " complete. Waiting " + waitSec + "s for rate limit reset before batch " + (b + 2) + "...");
+      console.log("[Analyze] Waiting " + waitSec + "s between batches for rate limit reset...");
+      await new Promise(function (r) { setTimeout(r, waitSec * 1000); });
+    }
   }
+
+  if (onStatus) onStatus("Merging intelligence from " + batches.length + " batches...");
+  console.log("[Analyze] Merging " + partialResults.length + " batch results");
+  return mergeMeddpiccResults(partialResults);
 }
 
 // ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Read file content ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ
@@ -760,21 +824,59 @@ function readFileContent(file) {
   return new Promise(function (resolve, reject) {
     var isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     if (isPDF) {
+      // Try text extraction first (much cheaper on API tokens), fall back to base64
       var reader = new FileReader();
-      reader.onload = function (ev) {
+      reader.onload = async function (ev) {
         try {
-          var base64 = ev.target.result.split(",")[1];
-          resolve({
-            name: file.name,
-            type: "application/pdf",
-            base64: base64
-          });
+          var arrayBuf = ev.target.result;
+          // Try pdf.js text extraction
+          if (window.pdfjsLib) {
+            try {
+              var pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuf) }).promise;
+              var pages = [];
+              var pageCount = pdf.numPages;
+              for (var p = 1; p <= pageCount; p++) {
+                var page = await pdf.getPage(p);
+                var tc = await page.getTextContent();
+                var pageText = tc.items.map(function (item) { return item.str; }).join(" ");
+                if (pageText.trim()) pages.push("--- Page " + p + " ---\n" + pageText.trim());
+              }
+              var fullText = pages.join("\n\n");
+              // If we got meaningful text (> 50 chars), send as text (10-20x fewer tokens)
+              if (fullText.length > 50) {
+                console.log("[FileRead] PDF text extracted: " + file.name + " (" + pageCount + " pages, " + fullText.length + " chars)");
+                resolve({
+                  name: file.name,
+                  type: "text/plain",
+                  text: fullText,
+                  originalType: "pdf",
+                  pageCount: pageCount
+                });
+                return;
+              }
+              console.log("[FileRead] PDF has minimal text, falling back to base64: " + file.name);
+            } catch (pdfErr) {
+              console.warn("[FileRead] pdf.js extraction failed for " + file.name + ", falling back to base64:", pdfErr.message);
+            }
+          }
+          // Fallback: send as base64 (for scanned/image PDFs where text extraction fails)
+          var base64Reader = new FileReader();
+          base64Reader.onload = function (ev2) {
+            var base64 = ev2.target.result.split(",")[1];
+            resolve({
+              name: file.name,
+              type: "application/pdf",
+              base64: base64
+            });
+          };
+          base64Reader.onerror = reject;
+          base64Reader.readAsDataURL(file);
         } catch (err) {
           reject(err);
         }
       };
       reader.onerror = reject;
-      reader.readAsDataURL(file);
+      reader.readAsArrayBuffer(file);
     } else {
       var reader = new FileReader();
       reader.onload = function (e) {
@@ -789,6 +891,54 @@ function readFileContent(file) {
     }
   });
 }
+
+// === IndexedDB File Persistence ===
+var FileDB = (function() {
+  var DB_NAME = "salesai_files";
+  var STORE = "filedata";
+  var DB_VERSION = 1;
+  function openDB() {
+    return new Promise(function(resolve, reject) {
+      var req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = function(e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+      };
+      req.onsuccess = function(e) { resolve(e.target.result); };
+      req.onerror = function(e) { reject(e.target.error); };
+    });
+  }
+  return {
+    save: async function(key, filesArray) {
+      try {
+        var db = await openDB();
+        var tx = db.transaction(STORE, "readwrite");
+        tx.objectStore(STORE).put(filesArray, key);
+        await new Promise(function(res, rej) { tx.oncomplete = res; tx.onerror = rej; });
+        console.log("[FileDB] Saved", filesArray.length, "files for key:", key);
+      } catch(e) { console.warn("[FileDB] Save failed:", e); }
+    },
+    load: async function(key) {
+      try {
+        var db = await openDB();
+        var tx = db.transaction(STORE, "readonly");
+        var req = tx.objectStore(STORE).get(key);
+        return new Promise(function(res, rej) {
+          req.onsuccess = function() { res(req.result || null); };
+          req.onerror = function() { res(null); };
+        });
+      } catch(e) { console.warn("[FileDB] Load failed:", e); return null; }
+    },
+    remove: async function(key) {
+      try {
+        var db = await openDB();
+        var tx = db.transaction(STORE, "readwrite");
+        tx.objectStore(STORE).delete(key);
+      } catch(e) {}
+    }
+  };
+})();
+
 
 // ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Document Generators (MEDDPICC-powered) ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ
 function makeSOE(deal) {
@@ -6767,6 +6917,8 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
     }
     if (!fileDataRef.current[fileRefKey]) fileDataRef.current[fileRefKey] = [];
     fileDataRef.current[fileRefKey] = [...fileDataRef.current[fileRefKey], ...contents];
+    FileDB.save(fileRefKey, fileDataRef.current[fileRefKey]);
+
     e.target.value = "";
     showToast(files.length + " file(s) uploaded \u2014 click Analyze Deal to extract intelligence");
   };
@@ -6786,9 +6938,22 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
       return;
     }
     let files = fileDataRef.current[fileRefKey];
+    // Restore from IndexedDB if files are missing but docs exist
+    if ((!files || files.length === 0) && deal.docs && deal.docs.length > 0) {
+      console.log('[Analyze] Files not in memory, trying IndexedDB restore...');
+      setAnalyzeStatus('Restoring saved files...');
+      try {
+        var savedFiles = await FileDB.load(fileRefKey);
+        if (savedFiles && savedFiles.length > 0) {
+          fileDataRef.current[fileRefKey] = savedFiles;
+          files = savedFiles;
+          console.log('[Analyze] Restored', files.length, 'files from IndexedDB');
+        }
+      } catch(dbErr) { console.warn('[Analyze] IndexedDB restore failed:', dbErr); }
+    }
     if ((!files || files.length === 0) && !deal.driveUrl) {
       console.log("[Analyze] No files and no driveUrl — aborting");
-      showToast("Upload source files or link a Google Drive folder first");
+      showToast("\u26a0\ufe0f Please re-upload your source files. File data does not persist after page refresh.");
       analyzeInProgressRef.current = false;
       return;
     }
