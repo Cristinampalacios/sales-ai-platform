@@ -1197,7 +1197,7 @@ function makeMSP(deal) {
   }];
   if (m && m.stakeholders) {
     m.stakeholders.filter(function (s) {
-      return s.influence === "Champion";
+      return s.influence === "Champion" && !s.internal;
     }).forEach(function (s) {
       governance.push({
         cadence: "Weekly",
@@ -1828,9 +1828,9 @@ function makeAccountPlan(deal) {
   sections.push({ heading: "Account Overview ÃÂ¢ÃÂÃÂ " + n, content: "Strategic account plan for " + n + ". Products: " + prods + ". ACV: " + acv + ". Region: " + (deal.region || "TBD") + ". Vertical: " + (deal.vertical || "TBD") });
   var champLine = m && m.champion && m.champion.name ? m.champion.name + " (" + (m.champion.title || "") + ")" : "TBD";
   var ebLine = m && m.economicBuyer && m.economicBuyer.name ? m.economicBuyer.name + " (" + (m.economicBuyer.title || "") + ")" : "TBD";
-  sections.push({ heading: "Key Relationships", items: ["Champion: " + champLine, "Economic Buyer: " + ebLine, "Total Stakeholders Mapped: " + (m && m.stakeholders ? m.stakeholders.length : 0)] });
+  sections.push({ heading: "Key Relationships", items: ["Champion: " + champLine, "Economic Buyer: " + ebLine, "Total Stakeholders Mapped: " + (m && m.stakeholders ? m.stakeholders.filter(function(s) { return !s.internal; }).length : 0)] });
   if (m && m.stakeholders && m.stakeholders.length > 0) {
-    sections.push({ heading: "Stakeholder Map", items: m.stakeholders.map(function(s) { return (s.name || "Unknown") + " (" + (s.title || "N/A") + ") ÃÂ¢ÃÂÃÂ " + (s.role || "Influence TBD") + (s.sentiment ? " | Sentiment: " + s.sentiment : ""); }) });
+    sections.push({ heading: "Stakeholder Map", items: m.stakeholders.filter(function(s) { return !s.internal; }).map(function(s) { return (s.name || "Unknown") + " (" + (s.title || "N/A") + ") ÃÂ¢ÃÂÃÂ " + (s.role || "Influence TBD") + (s.sentiment ? " | Sentiment: " + s.sentiment : ""); }) });
   }
   sections.push({ heading: "Strategic Objectives", items: m && m.identifiedPain ? ["Primary Pain: " + m.identifiedPain.primary, "Business Impact: " + (m.identifiedPain.businessImpact || "TBD"), "Strategic Initiative: " + (m.identifiedPain.initiative || sm.category + " transformation")] : sm.painPoints.slice(0, 4).map(function(p) { return "Address: " + p; }) });
   if (m && m.competition && m.competition.length > 0) {
@@ -4051,6 +4051,11 @@ function ViewSOI({
     copy[idx][field] = val;
     updateDocData(copy);
   };
+  var deleteSH = function (idx) {
+    var copy = JSON.parse(JSON.stringify(stakeholders));
+    copy.splice(idx, 1);
+    updateDocData(copy);
+  };
   var addSH = function () {
     var copy = JSON.parse(JSON.stringify(stakeholders));
     copy.push({
@@ -4104,7 +4109,7 @@ function ViewSOI({
     var pair = (clrs[s.influence] || "#f1f5f9|#334155").split("|");
     return /*#__PURE__*/React.createElement("div", {
       key: idx,
-      style: card
+      style: Object.assign({}, card, s.internal ? { opacity: 0.5, borderLeft: "3px solid #dc2626" } : {})
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         display: "flex",
@@ -4143,7 +4148,19 @@ function ViewSOI({
         key: o,
         value: o
       }, o);
-    }))), /*#__PURE__*/React.createElement(ECell, {
+    })), /*#__PURE__*/React.createElement("label", {
+      style: { display: "flex", alignItems: "center", gap: 3, fontSize: 10, fontWeight: 600, color: s.internal ? "#dc2626" : "#94a3b8", cursor: "pointer", marginLeft: 6, whiteSpace: "nowrap" },
+      title: "Mark as internal (NiCE/Cognigy) — excluded from customer-facing docs"
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "checkbox",
+      checked: !!s.internal,
+      onChange: function (e) { updateSH(idx, "internal", e.target.checked); },
+      style: { width: 13, height: 13, cursor: "pointer" }
+    }), "INT"), /*#__PURE__*/React.createElement("button", {
+      onClick: function () { if (confirm("Remove " + (s.name || "this stakeholder") + "?")) deleteSH(idx); },
+      style: { background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 14, marginLeft: 4, padding: "0 2px", lineHeight: 1 },
+      title: "Delete stakeholder"
+    }, "×")), /*#__PURE__*/React.createElement(ECell, {
       value: s.role,
       onChange: function (v) {
         updateSH(idx, "role", v);
@@ -6194,7 +6211,7 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
   oppList.forEach(function(e) {
     var m = e[1].meddpicc;
     if (m && m.stakeholders) {
-      m.stakeholders.forEach(function(s) {
+      m.stakeholders.filter(function(s) { return !s.internal; }).forEach(function(s) {
         var key = (s.name || "").toLowerCase();
         if (!seenNames[key]) {
           seenNames[key] = true;
