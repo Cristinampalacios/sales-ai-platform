@@ -7050,8 +7050,8 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  return;
  }
  let files = fileDataRef.current[fileRefKey];
- // Restore from IndexedDB if files are missing but docs exist
- if ((!files || files.length === 0) && deal.docs && deal.docs.length > 0) {
+ // Restore from IndexedDB if files are missing (check even if docs array is empty)
+ if (!files || files.length === 0) {
  console.log('[Analyze] Files not in memory, trying IndexedDB restore...');
  setAnalyzeStatus('Restoring saved files...');
  try {
@@ -7060,6 +7060,11 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  fileDataRef.current[fileRefKey] = savedFiles;
  files = savedFiles;
  console.log('[Analyze] Restored', files.length, 'files from IndexedDB');
+ // Update deal.docs if it was empty
+ if (!deal.docs || deal.docs.length === 0) {
+ var restoredNames = savedFiles.map(function(f) { return f.name; });
+ updateDeal({ docs: restoredNames });
+ }
  }
  } catch(dbErr) { console.warn('[Analyze] IndexedDB restore failed:', dbErr); }
  }
