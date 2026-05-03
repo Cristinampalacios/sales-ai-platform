@@ -6802,6 +6802,21 @@ function App() {
 window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey,allDeals:allDeals,fileDataRef:fileDataRef};
 
  const [lastSavedAt, setLastSavedAt] = useState(null);
+ const [cloudSyncStatus, setCloudSyncStatus] = useState("unknown"); // unknown|synced|uploading|local-only
+ // Check cloud sync status when opportunity changes
+ useEffect(function() {
+ if (!fileRefKey || fileRefKey === "/" || !deal.docs || deal.docs.length === 0) {
+ setCloudSyncStatus("unknown");
+ return;
+ }
+ if (window.SupabaseLayer && window.SupabaseLayer.isReady()) {
+ window.SupabaseLayer.listDealFiles(fileRefKey).then(function(cloudDocs) {
+ if (cloudDocs.length >= deal.docs.length) setCloudSyncStatus("synced");
+ else if (cloudDocs.length > 0) setCloudSyncStatus("partial");
+ else setCloudSyncStatus("local-only");
+ }).catch(function() { setCloudSyncStatus("unknown"); });
+ }
+ }, [fileRefKey, deal.docs ? deal.docs.length : 0]);
  useEffect(function () {
  saveAllDeals(allDeals);
  setLastSavedAt(new Date());
@@ -7006,6 +7021,16 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  fileDataRef.current[fileRefKey] = [...fileDataRef.current[fileRefKey], ...contents];
  FileDB.save(fileRefKey, fileDataRef.current[fileRefKey]);
 
+ // Cloud sync: upload raw files to Supabase Storage in background
+ if (window.SupabaseLayer && window.SupabaseLayer.isReady()) {
+ setCloudSyncStatus("uploading");
+ window.SupabaseLayer.uploadFilesBackground(fileRefKey, files).then(function(res) {
+ if (res.uploaded > 0) { console.log("[CloudSync] " + res.uploaded + " file(s) synced to cloud"); setCloudSyncStatus("synced"); }
+ if (res.queued) { console.log("[CloudSync] Files queued - will upload after deal syncs to Supabase"); setCloudSyncStatus("local-only"); }
+ if (res.failed > 0 && res.uploaded === 0) { console.warn("[CloudSync] " + res.failed + " file(s) failed cloud upload"); setCloudSyncStatus("local-only"); }
+ }).catch(function(err) { console.warn("[CloudSync] Background upload error:", err); setCloudSyncStatus("local-only"); });
+ }
+
  e.target.value = "";
  showToast(files.length + " file(s) uploaded \u2014 click Analyze Deal to extract intelligence");
  };
@@ -7038,9 +7063,25 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  }
  } catch(dbErr) { console.warn('[Analyze] IndexedDB restore failed:', dbErr); }
  }
+ // Cloud restore: try downloading from Supabase Storage if local files are missing
+ if ((!files || files.length === 0) && window.SupabaseLayer && window.SupabaseLayer.isReady()) {
+ console.log('[Analyze] No local files, trying Supabase Storage download...');
+ setAnalyzeStatus('Downloading files from cloud...');
+ try {
+ var cloudFiles = await window.SupabaseLayer.downloadDealFiles(fileRefKey, function(s) { setAnalyzeStatus(s); });
+ if (cloudFiles && cloudFiles.length > 0) {
+ fileDataRef.current[fileRefKey] = cloudFiles;
+ files = cloudFiles;
+ // Save to IndexedDB for future local access
+ FileDB.save(fileRefKey, cloudFiles);
+ console.log('[Analyze] Restored', files.length, 'files from Supabase cloud storage');
+ showToast('Restored ' + files.length + ' file(s) from cloud');
+ }
+ } catch(cloudErr) { console.warn('[Analyze] Supabase cloud restore failed:', cloudErr); }
+ }
  if ((!files || files.length === 0) && !deal.driveUrl) {
  console.log("[Analyze] No files and no driveUrl - aborting");
- showToast("\u26a0\ufe0f Please re-upload your source files. File data does not persist after page refresh.");
+ showToast("\u26a0\ufe0f No files found locally or in cloud. Please re-upload your source files.");
  analyzeInProgressRef.current = false;
  return;
  }
@@ -8272,7 +8313,11 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  }, /*#__PURE__*/React.createElement(IFile, {
  size: 10,
  color: "#8b5cf6"
- }), " SOURCE FILES ", (deal.docs || []).length > 0 ? "(" + (deal.docs || []).length + ")" : ""), (deal.docs || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
+ }), " SOURCE FILES ", (deal.docs || []).length > 0 ? "(" + (deal.docs || []).length + ")" : "",
+ cloudSyncStatus === "synced" ? React.createElement("span", { style: { fontSize: 9, color: "#22c55e", marginLeft: 4 }, title: "All files synced to cloud" }, " ☁ synced") :
+ cloudSyncStatus === "partial" ? React.createElement("span", { style: { fontSize: 9, color: "#f59e0b", marginLeft: 4 }, title: "Some files synced to cloud" }, " ☁ partial") :
+ cloudSyncStatus === "local-only" ? React.createElement("span", { style: { fontSize: 9, color: "#94a3b8", marginLeft: 4 }, title: "Files only stored locally" }, " ☁ local") :
+ cloudSyncStatus === "uploading" ? React.createElement("span", { style: { fontSize: 9, color: "#3b82f6", marginLeft: 4 } }, " ☁ uploading...") : null), (deal.docs || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
  style: {
  flex: 1,
  display: "flex",
@@ -9410,6 +9455,176 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
  }
 
  /**
+ * List files stored in Supabase for a deal
+ */
+ async function listDealFiles(dealKey) {
+ if (!isInitialized) return [];
+ restoreDealMapping();
+ const dealId = dealKeyToIdMap[dealKey];
+ if (!dealId) return [];
+ try {
+ const { data, error } = await supabaseClient
+ .from('deal_documents')
+ .select('id, filename, file_type, file_size, storage_path')
+ .eq('deal_id', dealId);
+ if (error) throw error;
+ return data || [];
+ } catch (err) {
+ console.error(`${LOG_PREFIX} listDealFiles failed:`, err);
+ return [];
+ }
+ }
+
+ /**
+ * Download all files for a deal from Supabase Storage and return as content objects
+ * compatible with readFileContent format (for hydrating IndexedDB on new devices)
+ */
+ async function downloadDealFiles(dealKey, onStatus) {
+ if (!isInitialized) return [];
+ restoreDealMapping();
+ const dealId = dealKeyToIdMap[dealKey];
+ if (!dealId) return [];
+
+ try {
+ const docs = await listDealFiles(dealKey);
+ if (!docs || docs.length === 0) return [];
+
+ const results = [];
+ for (let i = 0; i < docs.length; i++) {
+ const doc = docs[i];
+ if (onStatus) onStatus(`Downloading file ${i + 1}/${docs.length}: ${doc.filename}`);
+ try {
+ const { data, error } = await supabaseClient.storage
+ .from(STORAGE_BUCKET_DOCS)
+ .download(doc.storage_path);
+ if (error) { console.warn(`${LOG_PREFIX} Download failed for ${doc.filename}:`, error); continue; }
+
+ // Convert blob to content object matching readFileContent format
+ const isPDF = doc.file_type === 'application/pdf' || doc.filename.toLowerCase().endsWith('.pdf');
+ if (isPDF && window.pdfjsLib) {
+ // Extract text from PDF using pdf.js
+ try {
+ const arrayBuf = await data.arrayBuffer();
+ const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuf) }).promise;
+ const pages = [];
+ for (let p = 1; p <= pdf.numPages; p++) {
+ const page = await pdf.getPage(p);
+ const tc = await page.getTextContent();
+ const pageText = tc.items.map(item => item.str).join(' ');
+ if (pageText.trim()) pages.push(`--- Page ${p} ---\n${pageText.trim()}`);
+ }
+ const fullText = pages.join('\n\n');
+ if (fullText.length > 50) {
+ results.push({ name: doc.filename, type: 'text/plain', text: fullText, originalType: 'pdf', pageCount: pdf.numPages });
+ continue;
+ }
+ } catch (pdfErr) {
+ console.warn(`${LOG_PREFIX} PDF text extraction failed for ${doc.filename}, using base64`);
+ }
+ // Fallback: base64 for scanned PDFs
+ const b64Reader = new FileReader();
+ const base64 = await new Promise((res, rej) => {
+ b64Reader.onload = e => res(e.target.result.split(',')[1]);
+ b64Reader.onerror = rej;
+ b64Reader.readAsDataURL(data);
+ });
+ results.push({ name: doc.filename, type: 'application/pdf', base64: base64 });
+ } else {
+ // Text-based files
+ const text = await data.text();
+ results.push({ name: doc.filename, type: 'text/plain', text: text });
+ }
+ console.log(`${LOG_PREFIX} Downloaded ${doc.filename}`);
+ } catch (fileErr) {
+ console.warn(`${LOG_PREFIX} Failed to download ${doc.filename}:`, fileErr);
+ }
+ }
+ console.log(`${LOG_PREFIX} Downloaded ${results.length}/${docs.length} files for deal "${dealKey}"`);
+ return results;
+ } catch (err) {
+ console.error(`${LOG_PREFIX} downloadDealFiles failed:`, err);
+ return [];
+ }
+ }
+
+ /**
+ * Upload multiple files in background (fire-and-forget with status tracking)
+ */
+ async function uploadFilesBackground(dealKey, fileList) {
+ if (!isInitialized) return { uploaded: 0, failed: 0 };
+ restoreDealMapping();
+ const dealId = dealKeyToIdMap[dealKey];
+ if (!dealId) {
+ console.warn(`${LOG_PREFIX} Cannot upload files - deal "${dealKey}" not synced to Supabase yet. Will retry after sync.`);
+ // Queue for retry after next sync
+ if (!window._pendingFileUploads) window._pendingFileUploads = [];
+ window._pendingFileUploads.push({ dealKey, fileList });
+ return { uploaded: 0, failed: 0, queued: true };
+ }
+
+ const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB per file
+ let uploaded = 0, failed = 0;
+
+ for (const file of fileList) {
+ if (file.size > MAX_FILE_SIZE) {
+ console.warn(`${LOG_PREFIX} Skipping ${file.name} - exceeds 25MB limit (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+ if (window.showToast) window.showToast(`${file.name} too large for cloud sync (${(file.size / 1024 / 1024).toFixed(1)}MB > 25MB limit)`);
+ failed++;
+ continue;
+ }
+ try {
+ await uploadFile(dealKey, file);
+ uploaded++;
+ } catch (err) {
+ console.warn(`${LOG_PREFIX} Failed to upload ${file.name}:`, err.message);
+ failed++;
+ }
+ }
+
+ // Update cloud sync status
+ window._cloudSyncStatus = window._cloudSyncStatus || {};
+ window._cloudSyncStatus[dealKey] = uploaded > 0 ? 'synced' : (failed > 0 ? 'error' : 'synced');
+
+ console.log(`${LOG_PREFIX} Background upload complete: ${uploaded} uploaded, ${failed} failed`);
+ return { uploaded, failed };
+ }
+
+ /**
+ * Check total storage usage
+ */
+ async function getStorageUsage() {
+ if (!isInitialized) return { totalBytes: 0, fileCount: 0 };
+ try {
+ const { data, error } = await supabaseClient
+ .from('deal_documents')
+ .select('file_size');
+ if (error) throw error;
+ const totalBytes = (data || []).reduce((sum, d) => sum + (d.file_size || 0), 0);
+ return { totalBytes, fileCount: (data || []).length };
+ } catch (err) {
+ return { totalBytes: 0, fileCount: 0 };
+ }
+ }
+
+ /**
+ * Process any queued file uploads (called after sync creates the deal in Supabase)
+ */
+ async function processQueuedUploads() {
+ if (!window._pendingFileUploads || window._pendingFileUploads.length === 0) return;
+ const queue = window._pendingFileUploads.splice(0);
+ for (const item of queue) {
+ restoreDealMapping();
+ if (dealKeyToIdMap[item.dealKey]) {
+ console.log(`${LOG_PREFIX} Processing queued upload for "${item.dealKey}"`);
+ await uploadFilesBackground(item.dealKey, item.fileList);
+ } else {
+ // Still no mapping, re-queue
+ window._pendingFileUploads.push(item);
+ }
+ }
+ }
+
+ /**
  * Public API
  */
  window.SupabaseLayer = {
@@ -9418,11 +9633,16 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
  syncToSupabase: syncToSupabase,
  deleteFromSupabase: deleteFromSupabase,
  uploadFile: uploadFile,
+ uploadFilesBackground: uploadFilesBackground,
+ downloadDealFiles: downloadDealFiles,
+ listDealFiles: listDealFiles,
  saveGeneratedDoc: saveGeneratedDoc,
  addDealUpdate: addDealUpdate,
  isReady: isReady,
  getLocalCache: getLocalStorageCache,
- getMapping: () => ({ ...dealKeyToIdMap })
+ getMapping: () => ({ ...dealKeyToIdMap }),
+ getStorageUsage: getStorageUsage,
+ processQueuedUploads: processQueuedUploads
  };
 
  console.log(`${LOG_PREFIX} Module loaded. Call SupabaseLayer.init() to initialize.`);
@@ -9540,6 +9760,8 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
  await window.SupabaseLayer.syncToSupabase(allDeals);
  lastSyncTime = new Date();
  addSyncIndicator('synced');
+ // Process any queued file uploads that were waiting for deal to sync
+ try { await window.SupabaseLayer.processQueuedUploads(); } catch(qErr) { console.warn(`${BOOT_LOG} Queued upload processing failed:`, qErr); }
  } catch (err) {
  console.error(`${BOOT_LOG} Background sync failed:`, err);
  addSyncIndicator('error');
