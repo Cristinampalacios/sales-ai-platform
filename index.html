@@ -1744,10 +1744,21 @@ function makeTimeline(deal) {
       detail: ""
     });
   }
+  // Sort chronologically — parse dates, put "Next"/"Upcoming" at the end
+  events.sort(function(a, b) {
+    var parseD = function(d) {
+      if (!d) return 9999999999999;
+      var s = String(d).toLowerCase();
+      if (s === "next" || s === "upcoming" || s === "tbd") return 9999999999998;
+      var t = Date.parse(d);
+      return isNaN(t) ? 9999999999997 : t;
+    };
+    return parseD(a.date) - parseD(b.date);
+  });
   return events;
 }
 
-// ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Discount Approval Request Generator ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ
+//ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Discount Approval Request Generator ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ
 function makeDiscountApproval(deal) {
   const m = deal.meddpicc;
   const n = deal.name || "Customer";
@@ -4105,7 +4116,7 @@ function ViewSOI({
       gridTemplateColumns: "1fr 1fr",
       gap: 12
     }
-  }, stakeholders.map(function (s, idx) {
+  }, stakeholders.map(function (s, origIdx) { return { s: s, origIdx: origIdx }; }).filter(function (item) { return !item.s.internal; }).map(function (item) { var s = item.s; var idx = item.origIdx;
     var pair = (clrs[s.influence] || "#f1f5f9|#334155").split("|");
     return /*#__PURE__*/React.createElement("div", {
       key: idx,
@@ -4615,9 +4626,68 @@ function ViewCommercials({
   );
 }
 function ViewROI({ deal, generated, docData, updateDocData }) {
-  if (!generated) return /*#__PURE__*/React.createElement(EmptyState, { label: "ROI Analysis", name: deal.name, analyzed: !!deal.meddpicc });
+  var _roiUp = React.useState(false), roiUploading = _roiUp[0], setRoiUploading = _roiUp[1];
+  var _roiStatus = React.useState(""), roiStatus = _roiStatus[0], setRoiStatus = _roiStatus[1];
+  var _roiFile = React.useState(null), roiFile = _roiFile[0], setRoiFile = _roiFile[1];
+  var roiInputRef = React.useRef(null);
+
+  var analyzeROIFile = async function() {
+    if (!roiFile) return;
+    var apiKey = loadApiKey();
+    if (!apiKey) { showToast("Set your API key in Settings first"); return; }
+    setRoiUploading(true);
+    setRoiStatus("Reading file...");
+    try {
+      var text = await new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function(e) { resolve(e.target.result); };
+        reader.onerror = reject;
+        reader.readAsText(roiFile);
+      });
+      setRoiStatus("Analyzing ROI data with AI...");
+      var prompt = "You are a top 1% enterprise sales ROI analyst for NiCE (NICE CXone) + Cognigy contact center solutions.\n\nThe user uploaded an ROI document or spreadsheet data for: " + (deal.name || "this deal") + "\nProducts: " + (deal.products || []).join(", ") + "\nACV: " + (deal.acv || "TBD") + "\n\nHere is the uploaded content:\n---\n" + text.substring(0, 50000) + "\n---\n\nAnalyze this ROI data and return a JSON array of sections for display. Each section has {heading, content} or {heading, items:[]}.\n\nInclude these sections:\n1. ROI Summary \u2014 key findings from the uploaded data\n2. Financial Impact \u2014 extract specific dollar amounts, percentages, savings\n3. Current State vs Future State \u2014 compare before/after metrics from the data\n4. Cost Breakdown \u2014 any pricing, licensing, implementation costs found\n5. Payback Timeline \u2014 when ROI is realized based on the data\n6. Risk-Adjusted Returns \u2014 conservative vs optimistic scenarios\n7. Key Assumptions \u2014 assumptions underlying the ROI model\n\nUse ACTUAL numbers from the uploaded data. Do NOT make up numbers \u2014 if a metric isn't in the data, say 'Not provided in source data'.\n\nReturn ONLY valid JSON array, no markdown.";
+      var resp = await callClaudeAPISingle(apiKey, prompt, setRoiStatus);
+      var parsed;
+      try {
+        var jsonText = resp.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+        parsed = JSON.parse(jsonText);
+      } catch(pe) {
+        parsed = [{ heading: "ROI Analysis", content: resp }];
+      }
+      updateDocData(parsed);
+      setRoiStatus("");
+      setRoiFile(null);
+      showToast("\u2705 ROI analysis complete \u2014 " + parsed.length + " sections generated from your data");
+    } catch(err) {
+      setRoiStatus("");
+      showToast("ROI analysis failed: " + err.message);
+    }
+    setRoiUploading(false);
+  };
+
+  if (!generated && !roiFile) return /*#__PURE__*/React.createElement("div", null,
+    /*#__PURE__*/React.createElement(EmptyState, { label: "ROI Analysis", name: deal.name, analyzed: !!deal.meddpicc }),
+    /*#__PURE__*/React.createElement("div", { style: { textAlign: "center", padding: "20px 0" } },
+      /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#64748b", marginBottom: 12 } }, "Or upload your team\u2019s formal ROI document / spreadsheet data for AI analysis:"),
+      /*#__PURE__*/React.createElement("input", { ref: roiInputRef, type: "file", accept: ".csv,.tsv,.txt,.xlsx,.xls,.pdf,.docx,.doc", style: { display: "none" }, onChange: function(e) { if (e.target.files[0]) setRoiFile(e.target.files[0]); } }),
+      /*#__PURE__*/React.createElement("button", { onClick: function() { roiInputRef.current && roiInputRef.current.click(); }, style: { background: "linear-gradient(135deg,#f97316,#ea580c)", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontSize: 13, fontWeight: 700, cursor: "pointer" } }, "\u2191 Upload ROI Data")
+    )
+  );
+
   var sections = docData || makeROI(deal);
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#7c2d12,#1e293b)" }) }, /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#fdba74", margin: "0 0 4px" } }, deal.name, " ROI Analysis"), /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#fed7aa", margin: 0 } }, "Return on Investment & Business Case", deal.acv ? " \u2014 " + deal.acv : "")), /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#f97316", IconComp: IPercent }));
+  return /*#__PURE__*/React.createElement("div", null,
+    /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#7c2d12,#1e293b)" }) },
+      /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#fdba74", margin: "0 0 4px" } }, deal.name, " ROI Analysis"),
+      /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#fed7aa", margin: 0 } }, "Return on Investment & Business Case", deal.acv ? " \u2014 " + deal.acv : "")
+    ),
+    /*#__PURE__*/React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 10 } },
+      /*#__PURE__*/React.createElement("input", { ref: roiInputRef, type: "file", accept: ".csv,.tsv,.txt,.xlsx,.xls,.pdf,.docx,.doc", style: { display: "none" }, onChange: function(e) { if (e.target.files[0]) setRoiFile(e.target.files[0]); } }),
+      roiFile ? /*#__PURE__*/React.createElement("span", { style: { fontSize: 12, color: "#64748b", alignSelf: "center" } }, "\ud83d\udcc4 ", roiFile.name) : null,
+      /*#__PURE__*/React.createElement("button", { onClick: function() { roiInputRef.current && roiInputRef.current.click(); }, style: { background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa", borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" } }, "\u2191 Upload ROI Data"),
+      roiFile ? /*#__PURE__*/React.createElement("button", { onClick: analyzeROIFile, disabled: roiUploading, style: { background: roiUploading ? "#94a3b8" : "linear-gradient(135deg,#f97316,#ea580c)", color: "#fff", border: "none", borderRadius: 6, padding: "5px 14px", fontSize: 12, fontWeight: 700, cursor: roiUploading ? "wait" : "pointer" } }, roiUploading ? roiStatus || "Analyzing..." : "\u26a1 Analyze ROI") : null
+    ),
+    /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#f97316", IconComp: IPercent })
+  );
 }
 
 // \u2500\u2500 Account Plan View
