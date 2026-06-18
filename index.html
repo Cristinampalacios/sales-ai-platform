@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Sales AI Deal Intelligence Platform</title>
+<title>NiCE Sales AI Deal Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8fafc;color:#1e293b;overflow-x:hidden}
+body{font-family:"Be Vietnam Pro",Arial,system-ui,sans-serif;background:#f2f0eb;color:#21212b;overflow-x:hidden}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
@@ -19,15 +21,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
  .soe-hidden{display:none!important}
  .no-print{display:none!important}
 }
-#app-loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f8fafc;z-index:9999;flex-direction:column;gap:16px}
-#app-loading .spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite}
+#app-loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f2f0eb;z-index:9999;flex-direction:column;gap:16px}
+#app-loading .spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#3694fc;border-radius:50%;animation:spin .8s linear infinite}
 </style>
 </head>
 <body>
-<div id="app-loading"><div class="spinner"></div><p style="color:#64748b;font-size:13px">Loading Sales AI...</p></div>
+<div id="app-loading"><div class="spinner"></div><p style="color:#64748b;font-size:13px">Loading NiCE Sales AI...</p></div>
 <div id="root"></div>
 <script>
-window.onerror=function(m,s,l,c,e){var ld=document.getElementById("app-loading");if(ld)ld.remove();document.getElementById("root").innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#dc2626">Something went wrong</h2><p style="color:#64748b;margin:12px 0">'+m+'</p><button onclick="location.reload()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer">Reload</button></div>'};
+window.onerror=function(m,s,l,c,e){var ld=document.getElementById("app-loading");if(ld)ld.remove();document.getElementById("root").innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#dc2626">Something went wrong</h2><p style="color:#64748b;margin:12px 0">'+m+'</p><button onclick="location.reload()" style="padding:8px 16px;background:#3694fc;color:#fff;border:none;border-radius:6px;cursor:pointer">Reload</button></div>'};
 /* Boot-time wipe handler. Visit ?wipe=1 to nuke all local + cloud data and start clean. */
 (function(){
  try {
@@ -47,7 +49,7 @@ window.onerror=function(m,s,l,c,e){var ld=document.getElementById("app-loading")
  // 2) Clear cloud
  var SUPA_URL = 'https://lkoqstzhlbujmtgoyeop.supabase.co';
  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrb3FzdHpobGJ1am10Z295ZW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzg2OTEsImV4cCI6MjA5MDcxNDY5MX0.M8MRNeFGGRZT70jMvVE61m5UE2v2hK9dLEV02AjHvZU';
- document.getElementById('app-loading').innerHTML = '<p style="color:#2563eb;font-size:14px">Wiping all data...</p>';
+ document.getElementById('app-loading').innerHTML = '<p style="color:#3694fc;font-size:14px">Wiping all data...</p>';
  fetch(SUPA_URL + '/rest/v1/deals?id=neq.00000000-0000-0000-0000-000000000000', {
  method: 'DELETE',
  headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY }
@@ -623,7 +625,7 @@ async function callClaudeAPISingle(apiKey, content, onStatus, maxRetries) {
  "anthropic-dangerous-direct-browser-access": "true"
  },
  body: JSON.stringify({
- model: "claude-sonnet-4-20250514",
+ model: "claude-sonnet-4-6",
  max_tokens: 8192,
  messages: [{ role: "user", content: content }]
  })
@@ -1041,7 +1043,7 @@ function makeSOE(deal) {
  value: "" + pct,
  unit: "%",
  desc: "Transition Ready",
- color: "#2563eb"
+ color: "#3694fc"
  }, {
  label: "SECURED",
  value: "" + completedCount,
@@ -1859,7 +1861,7 @@ const card = {
  padding: 20
 };
 const darkHeader = (extra = {}) => ({
- background: "linear-gradient(135deg,#1e293b,#0f172a)",
+ background: "linear-gradient(135deg,#21212b,#191920)",
  borderRadius: 10,
  padding: 24,
  marginBottom: 20,
@@ -1966,7 +1968,7 @@ function MeddpiccSummary({
  const items = [{
  key: "M",
  label: "Metrics",
- color: "#2563eb",
+ color: "#3694fc",
  value: m.metrics ? m.metrics.summary : null,
  detail: m.metrics && m.metrics.details ? m.metrics.details : []
  }, {
@@ -2012,7 +2014,7 @@ function MeddpiccSummary({
  }];
  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
  style: darkHeader({
- background: "linear-gradient(135deg,#312e81,#1e293b)"
+ background: "linear-gradient(135deg,#312e81,#21212b)"
  })
  }, /*#__PURE__*/React.createElement("h2", {
  style: {
@@ -2031,7 +2033,7 @@ function MeddpiccSummary({
  style: {
  ...card,
  marginBottom: 14,
- borderLeft: "4px solid #2563eb"
+ borderLeft: "4px solid #3694fc"
  }
  }, /*#__PURE__*/React.createElement("p", {
  style: {
@@ -2077,7 +2079,7 @@ function MeddpiccSummary({
  style: {
  fontSize: 14,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  margin: 0
  }
  }, item.label)), item.value ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
@@ -2186,7 +2188,7 @@ function ECell({
  },
  onFocus: function (e) {
  e.target.style.borderColor = "#3b82f6";
- e.target.style.background = "#f8fafc";
+ e.target.style.background = "#f2f0eb";
  },
  onBlur: function (e) {
  e.target.style.borderColor = "transparent";
@@ -2212,7 +2214,7 @@ function ECell({
  },
  onFocus: function (e) {
  e.target.style.borderColor = "#3b82f6";
- e.target.style.background = "#f8fafc";
+ e.target.style.background = "#f2f0eb";
  },
  onBlur: function (e) {
  e.target.style.borderColor = "transparent";
@@ -2278,7 +2280,7 @@ function EditableSections({
  style: {
  fontSize: 14,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  flex: 1
  }
  })), s.content !== undefined && /*#__PURE__*/React.createElement(ECell, {
@@ -2390,7 +2392,7 @@ function ViewSOE({
  value: "" + Math.round(comp / total * 100),
  unit: "%",
  desc: "Transition Ready",
- color: "#2563eb"
+ color: "#3694fc"
  }, {
  label: "SECURED",
  value: "" + comp,
@@ -2567,7 +2569,7 @@ function ViewSOE({
  style: {
  fontSize: 15,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  margin: 0
  }
  }, "Milestone Tracking"), /*#__PURE__*/React.createElement("span", {
@@ -2614,7 +2616,7 @@ function ViewSOE({
  onClick: addMilestone,
  style: {
  background: "#eff6ff",
- color: "#1d4ed8",
+ color: "#2b7de9",
  border: "1px solid #bfdbfe",
  borderRadius: 6,
  padding: "5px 10px",
@@ -2638,7 +2640,7 @@ function ViewSOE({
  }
  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
  style: {
- background: "#f8fafc",
+ background: "#f2f0eb",
  borderBottom: "1px solid #e2e8f0"
  }
  }, /*#__PURE__*/React.createElement("th", {
@@ -2705,7 +2707,7 @@ function ViewSOE({
  updateMs(idx, "status", ms.done ? "IN PROGRESS" : "COMPLETE");
  },
  style: {
- accentColor: "#2563eb",
+ accentColor: "#3694fc",
  width: 14,
  height: 14,
  cursor: "pointer"
@@ -2721,7 +2723,7 @@ function ViewSOE({
  },
  style: {
  fontWeight: 600,
- color: isHidden ? "#94a3b8" : "#1e293b",
+ color: isHidden ? "#94a3b8" : "#21212b",
  fontSize: 13
  }
  })), /*#__PURE__*/React.createElement("td", {
@@ -2897,7 +2899,7 @@ function ViewMSP({
  }).length;
  var phaseColors = {
  "complete": "#059669",
- "in-progress": "#2563eb",
+ "in-progress": "#3694fc",
  "upcoming": "#cbd5e1"
  };
  var prioColors = {
@@ -2912,7 +2914,7 @@ function ViewMSP({
  };
  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
  style: {
- background: "linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#1e293b 100%)",
+ background: "linear-gradient(135deg,#191920 0%,#1e3a5f 50%,#21212b 100%)",
  borderRadius: 12,
  padding: "28px 28px 20px",
  marginBottom: 16,
@@ -3062,7 +3064,7 @@ function ViewMSP({
  }
  }, /*#__PURE__*/React.createElement(ITarget, {
  size: 13,
- color: "#2563eb"
+ color: "#3694fc"
  }), " PARTNERSHIP JOURNEY"), /*#__PURE__*/React.createElement("div", {
  style: {
  display: "flex",
@@ -3087,7 +3089,7 @@ function ViewMSP({
  top: 14,
  left: 14,
  height: 3,
- background: "linear-gradient(90deg,#059669,#2563eb)",
+ background: "linear-gradient(90deg,#059669,#3694fc)",
  borderRadius: 2,
  zIndex: 1,
  width: function () {
@@ -3118,7 +3120,7 @@ function ViewMSP({
  display: "flex",
  alignItems: "center",
  justifyContent: "center",
- background: isComplete ? "#059669" : isActive ? "#2563eb" : "#f1f5f9",
+ background: isComplete ? "#059669" : isActive ? "#3694fc" : "#f1f5f9",
  border: isActive ? "3px solid #bfdbfe" : isComplete ? "3px solid #a7f3d0" : "3px solid #e2e8f0",
  boxShadow: isActive ? "0 0 0 4px rgba(37,99,235,0.15)" : "none"
  }
@@ -3146,7 +3148,7 @@ function ViewMSP({
  style: {
  fontSize: 11,
  fontWeight: 700,
- color: isComplete ? "#059669" : isActive ? "#1d4ed8" : "#94a3b8",
+ color: isComplete ? "#059669" : isActive ? "#2b7de9" : "#94a3b8",
  textAlign: "center"
  }
  }), /*#__PURE__*/React.createElement(ECell, {
@@ -3194,7 +3196,7 @@ function ViewMSP({
  }
  }, /*#__PURE__*/React.createElement(ITarget, {
  size: 13,
- color: "#2563eb"
+ color: "#3694fc"
  }), " SHARED OBJECTIVES"), /*#__PURE__*/React.createElement("span", {
  style: {
  fontSize: 11,
@@ -3256,7 +3258,7 @@ function ViewMSP({
  },
  style: {
  fontSize: 12,
- color: obj.done ? "#6b7280" : "#1e293b",
+ color: obj.done ? "#6b7280" : "#21212b",
  textDecoration: obj.done ? "line-through" : "none",
  flex: 1,
  lineHeight: 1.4
@@ -3353,7 +3355,7 @@ function ViewMSP({
  }, /*#__PURE__*/React.createElement("div", {
  style: {
  height: "100%",
- background: "linear-gradient(90deg,#2563eb,#60a5fa)",
+ background: "linear-gradient(90deg,#3694fc,#60a5fa)",
  borderRadius: 2,
  width: data.criteria.length > 0 ? Math.round(critMet / data.criteria.length * 100) + "%" : "0%",
  transition: "width 0.3s"
@@ -3383,7 +3385,7 @@ function ViewMSP({
  toggleCriteria(i);
  },
  style: {
- accentColor: "#2563eb",
+ accentColor: "#3694fc",
  width: 15,
  height: 15,
  cursor: "pointer",
@@ -3397,7 +3399,7 @@ function ViewMSP({
  },
  style: {
  fontSize: 12,
- color: c.met ? "#6b7280" : "#1e293b",
+ color: c.met ? "#6b7280" : "#21212b",
  textDecoration: c.met ? "line-through" : "none",
  flex: 1,
  lineHeight: 1.4
@@ -3437,7 +3439,7 @@ function ViewMSP({
  }
  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
  style: {
- background: "linear-gradient(135deg,#f8fafc,#f1f5f9)"
+ background: "linear-gradient(135deg,#f2f0eb,#f1f5f9)"
  }
  }, /*#__PURE__*/React.createElement("th", {
  style: {
@@ -3469,7 +3471,7 @@ function ViewMSP({
  width: 180
  }
  }, "Owner"))), /*#__PURE__*/React.createElement("tbody", null, data.governance.map(function (g, i) {
- var cadClr = g.cadence === "Weekly" ? "#dbeafe|#1d4ed8" : g.cadence === "Bi-weekly" ? "#ede9fe|#6d28d9" : g.cadence === "Monthly" ? "#fef3c7|#b45309" : "#f0fdf4|#065f46";
+ var cadClr = g.cadence === "Weekly" ? "#dbeafe|#2b7de9" : g.cadence === "Bi-weekly" ? "#ede9fe|#6d28d9" : g.cadence === "Monthly" ? "#fef3c7|#b45309" : "#f0fdf4|#065f46";
  var pair = cadClr.split("|");
  return /*#__PURE__*/React.createElement("tr", {
  key: i,
@@ -3500,7 +3502,7 @@ function ViewMSP({
  },
  style: {
  fontSize: 12,
- color: "#1e293b"
+ color: "#21212b"
  }
  })), /*#__PURE__*/React.createElement("td", {
  style: {
@@ -3601,7 +3603,7 @@ function ViewMSP({
  style: {
  fontSize: 12,
  fontWeight: 600,
- color: "#1e293b",
+ color: "#21212b",
  flex: 1
  }
  }), /*#__PURE__*/React.createElement("button", {
@@ -3706,7 +3708,7 @@ function ViewMSP({
  style: {
  fontSize: 12,
  fontWeight: 600,
- color: "#1e293b",
+ color: "#21212b",
  flex: 1
  }
  }), /*#__PURE__*/React.createElement("button", {
@@ -3847,7 +3849,7 @@ function ViewDiscovery({
  var discTabs = [{key:"doc",label:"Discovery Doc"},{key:"techstack",label:"Current Tech Stack"},{key:"sehandoff",label:"SE Hand-off"}];
  var sections = generated && (docData && docData.sections ? docData.sections : makeDisc(deal));
  return React.createElement("div", null,
- React.createElement("div", {style:{background:"linear-gradient(135deg,#1e3a5f,#0f172a)",padding:"28px 32px",borderRadius:"12px 12px 0 0"}},
+ React.createElement("div", {style:{background:"linear-gradient(135deg,#1e3a5f,#191920)",padding:"28px 32px",borderRadius:"12px 12px 0 0"}},
  React.createElement("h2", {style:{fontSize:20,fontWeight:800,color:"#93c5fd",margin:"0 0 4px"}}, deal.name, " Discovery Document"),
  React.createElement("p", {style:{fontSize:13,color:"#cbd5e1",margin:0}}, "MEDDPICC Intelligence & Pain Point Analysis")
  ),
@@ -3887,7 +3889,7 @@ function ViewChampion({
  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
  style: {
  ...darkHeader({
- background: "linear-gradient(135deg,#312e81,#1e293b)"
+ background: "linear-gradient(135deg,#312e81,#21212b)"
  }),
  position: "relative"
  }
@@ -3935,7 +3937,7 @@ function ViewChampion({
  alignItems: "center",
  gap: 7,
  padding: "7px 14px",
- background: "#f8fafc",
+ background: "#f2f0eb",
  color: "#374151",
  border: "1px solid #e2e8f0",
  borderRadius: 7,
@@ -4004,7 +4006,7 @@ function ViewChampion({
  }
  }, /*#__PURE__*/React.createElement(IShield, {
  size: 15,
- color: "#2563eb"
+ color: "#3694fc"
  })), /*#__PURE__*/React.createElement("div", {
  style: {
  flex: 1
@@ -4017,7 +4019,7 @@ function ViewChampion({
  style: {
  fontSize: 13,
  fontWeight: 700,
- color: "#1e293b"
+ color: "#21212b"
  }
  }), /*#__PURE__*/React.createElement(ECell, {
  value: bv.desc,
@@ -4102,7 +4104,7 @@ function ViewSOI({
  onClick: addSH,
  style: {
  background: "#eff6ff",
- color: "#1d4ed8",
+ color: "#2b7de9",
  border: "1px solid #bfdbfe",
  borderRadius: 6,
  padding: "5px 12px",
@@ -4136,7 +4138,7 @@ function ViewSOI({
  style: {
  fontSize: 14,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  flex: 1
  }
  }), /*#__PURE__*/React.createElement("select", {
@@ -4189,7 +4191,7 @@ function ViewSOI({
  style: {
  fontSize: 12,
  fontWeight: 600,
- color: "#2563eb",
+ color: "#3694fc",
  border: "none",
  background: "transparent",
  cursor: "pointer",
@@ -4263,7 +4265,7 @@ function CognigyPricingTool({ deal, updateDeal }) {
 
  var cardStyle = { background: "#fff", borderRadius: 10, border: "1px solid #e2e8f0", padding: 20, marginBottom: 16 };
  var labelStyle = { display: "block", fontSize: 12, fontWeight: 600, color: "#475569", marginBottom: 4 };
- var inputStyle = { width: "100%", padding: "8px 10px", fontSize: 13, border: "1px solid #cbd5e1", borderRadius: 8, outline: "none", background: "#f8fafc", boxSizing: "border-box" };
+ var inputStyle = { width: "100%", padding: "8px 10px", fontSize: 13, border: "1px solid #cbd5e1", borderRadius: 8, outline: "none", background: "#f2f0eb", boxSizing: "border-box" };
  var selectStyle = Object.assign({}, inputStyle, { cursor: "pointer" });
 
  return React.createElement("div", { style: { padding: "0 4px" } },
@@ -4280,8 +4282,8 @@ function CognigyPricingTool({ deal, updateDeal }) {
  React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20 } },
  React.createElement("div", null,
  React.createElement("div", { style: cardStyle },
- React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#1e293b", margin: "0 0 16px", paddingBottom: 10, borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", gap: 8 } },
- React.createElement("span", { style: { width: 24, height: 24, borderRadius: 6, background: "#eff6ff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#2563eb" } }, "\u2699"),
+ React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#21212b", margin: "0 0 16px", paddingBottom: 10, borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", gap: 8 } },
+ React.createElement("span", { style: { width: 24, height: 24, borderRadius: 6, background: "#eff6ff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#3694fc" } }, "\u2699"),
  "Capacity Parameters"
  ),
  React.createElement("div", { style: { marginBottom: 16 } },
@@ -4291,7 +4293,7 @@ function CognigyPricingTool({ deal, updateDeal }) {
  ),
  React.createElement("div", { style: { marginBottom: 16 } },
  React.createElement("label", { style: labelStyle }, "\uD83C\uDF99 Voice Channel Mix (", voicePercentage, "%)"),
- React.createElement("input", { type: "range", min: 0, max: 100, value: voicePercentage, onChange: function(e) { setVoicePercentage(Number(e.target.value)); }, style: { width: "100%", accentColor: "#2563eb" } }),
+ React.createElement("input", { type: "range", min: 0, max: 100, value: voicePercentage, onChange: function(e) { setVoicePercentage(Number(e.target.value)); }, style: { width: "100%", accentColor: "#3694fc" } }),
  React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: "#94a3b8", marginTop: 2 } },
  React.createElement("span", null, (100 - voicePercentage) + "% Digital"),
  React.createElement("span", null, voicePercentage + "% Voice")
@@ -4313,12 +4315,12 @@ function CognigyPricingTool({ deal, updateDeal }) {
  )
  ),
  React.createElement("div", { style: cardStyle },
- React.createElement("h3", { style: { fontSize: 13, fontWeight: 700, color: "#1e293b", margin: "0 0 10px" } }, "\u26A1 Quick Scenarios"),
+ React.createElement("h3", { style: { fontSize: 13, fontWeight: 700, color: "#21212b", margin: "0 0 10px" } }, "\u26A1 Quick Scenarios"),
  [{ label: "Mid-Market (10K/day)", vol: 10000 }, { label: "Enterprise (40K/day)", vol: 40000 }, { label: "Large Enterprise (100K/day)", vol: 100000 }, { label: "Mega (500K/day)", vol: 500000 }].map(function(sc) {
  return React.createElement("button", {
  key: sc.label,
  onClick: function() { setDailyVolume(sc.vol); },
- style: { display: "block", width: "100%", textAlign: "left", padding: "8px 12px", marginBottom: 4, fontSize: 12, fontWeight: dailyVolume === sc.vol ? 700 : 500, background: dailyVolume === sc.vol ? "#eff6ff" : "#f8fafc", color: dailyVolume === sc.vol ? "#1d4ed8" : "#475569", border: dailyVolume === sc.vol ? "1px solid #bfdbfe" : "1px solid #e2e8f0", borderRadius: 6, cursor: "pointer", transition: "all 0.15s" }
+ style: { display: "block", width: "100%", textAlign: "left", padding: "8px 12px", marginBottom: 4, fontSize: 12, fontWeight: dailyVolume === sc.vol ? 700 : 500, background: dailyVolume === sc.vol ? "#eff6ff" : "#f2f0eb", color: dailyVolume === sc.vol ? "#2b7de9" : "#475569", border: dailyVolume === sc.vol ? "1px solid #bfdbfe" : "1px solid #e2e8f0", borderRadius: 6, cursor: "pointer", transition: "all 0.15s" }
  }, sc.label);
  })
  )
@@ -4335,10 +4337,10 @@ function CognigyPricingTool({ deal, updateDeal }) {
  )
  ),
  React.createElement("div", { style: cardStyle },
- React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#1e293b", margin: "0 0 14px", paddingBottom: 10, borderBottom: "1px solid #f1f5f9" } }, "Budgetary Quote Breakdown"),
+ React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#21212b", margin: "0 0 14px", paddingBottom: 10, borderBottom: "1px solid #f1f5f9" } }, "Budgetary Quote Breakdown"),
  React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 13 } },
  React.createElement("thead", null,
- React.createElement("tr", { style: { background: "#f8fafc", textAlign: "left" } },
+ React.createElement("tr", { style: { background: "#f2f0eb", textAlign: "left" } },
  React.createElement("th", { style: { padding: "8px 12px", fontWeight: 600, color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 } }, "Line Item"),
  React.createElement("th", { style: { padding: "8px 12px", fontWeight: 600, color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, textAlign: "right" } }, "Metric"),
  React.createElement("th", { style: { padding: "8px 12px", fontWeight: 600, color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, textAlign: "right" } }, "Est. Cost")
@@ -4352,15 +4354,15 @@ function CognigyPricingTool({ deal, updateDeal }) {
  { name: "Support & Maintenance", metric: supportTier, cost: pricing.supportUplift },
  { name: "Professional Services (One-Time)", metric: "Implementation Ramp", cost: pricing.psEstimate, highlight: true }
  ].map(function(row, i) {
- return React.createElement("tr", { key: i, style: { borderBottom: "1px solid #f1f5f9", background: row.highlight ? "#f8fafc" : "transparent" } },
- React.createElement("td", { style: { padding: "10px 12px", fontWeight: 600, color: "#1e293b" } }, row.name),
+ return React.createElement("tr", { key: i, style: { borderBottom: "1px solid #f1f5f9", background: row.highlight ? "#f2f0eb" : "transparent" } },
+ React.createElement("td", { style: { padding: "10px 12px", fontWeight: 600, color: "#21212b" } }, row.name),
  React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", color: "#64748b" } }, row.metric),
- React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontWeight: 600, color: row.cost > 0 ? "#1e293b" : "#94a3b8" } }, fmt(row.cost))
+ React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontWeight: 600, color: row.cost > 0 ? "#21212b" : "#94a3b8" } }, fmt(row.cost))
  );
  })
  ),
  React.createElement("tfoot", null,
- React.createElement("tr", { style: { background: "#f0f9ff", borderTop: "2px solid #2563eb" } },
+ React.createElement("tr", { style: { background: "#f0f9ff", borderTop: "2px solid #3694fc" } },
  React.createElement("td", { style: { padding: "10px 12px", fontWeight: 800, color: "#1e3a5f" } }, "Total Year 1"),
  React.createElement("td", null),
  React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontWeight: 800, color: "#1e3a5f", fontSize: 15 } }, fmt(pricing.tcvYear1))
@@ -4372,15 +4374,15 @@ function CognigyPricingTool({ deal, updateDeal }) {
  React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 } },
  React.createElement("div", { style: { background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0", padding: "14px 16px", textAlign: "center" } },
  React.createElement("p", { style: { fontSize: 10, fontWeight: 600, color: "#64748b", margin: "0 0 4px", textTransform: "uppercase" } }, "Blended $/Interaction"),
- React.createElement("p", { style: { fontSize: 20, fontWeight: 800, color: "#1e293b", margin: 0 } }, pricing.annualVolume > 0 ? "$" + (pricing.arr / pricing.annualVolume).toFixed(4) : "\u2014")
+ React.createElement("p", { style: { fontSize: 20, fontWeight: 800, color: "#21212b", margin: 0 } }, pricing.annualVolume > 0 ? "$" + (pricing.arr / pricing.annualVolume).toFixed(4) : "\u2014")
  ),
  React.createElement("div", { style: { background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0", padding: "14px 16px", textAlign: "center" } },
  React.createElement("p", { style: { fontSize: 10, fontWeight: 600, color: "#64748b", margin: "0 0 4px", textTransform: "uppercase" } }, "PS % of TCV"),
- React.createElement("p", { style: { fontSize: 20, fontWeight: 800, color: "#1e293b", margin: 0 } }, pricing.tcvYear1 > 0 ? Math.round(pricing.psEstimate / pricing.tcvYear1 * 100) + "%" : "\u2014")
+ React.createElement("p", { style: { fontSize: 20, fontWeight: 800, color: "#21212b", margin: 0 } }, pricing.tcvYear1 > 0 ? Math.round(pricing.psEstimate / pricing.tcvYear1 * 100) + "%" : "\u2014")
  ),
  React.createElement("div", { style: { background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0", padding: "14px 16px", textAlign: "center" } },
  React.createElement("p", { style: { fontSize: 10, fontWeight: 600, color: "#64748b", margin: "0 0 4px", textTransform: "uppercase" } }, "Voice Uplift %"),
- React.createElement("p", { style: { fontSize: 20, fontWeight: 800, color: "#1e293b", margin: 0 } }, pricing.arr > 0 ? Math.round(pricing.voiceUplift / pricing.arr * 100) + "%" : "\u2014")
+ React.createElement("p", { style: { fontSize: 20, fontWeight: 800, color: "#21212b", margin: 0 } }, pricing.arr > 0 ? Math.round(pricing.voiceUplift / pricing.arr * 100) + "%" : "\u2014")
  )
  )
  )
@@ -4458,7 +4460,7 @@ function QuoteUploadPanel({deal, updateDeal}) {
  fetch("https://api.anthropic.com/v1/messages", {
  method: "POST",
  headers: {"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
- body: JSON.stringify({model: "claude-sonnet-4-20250514", max_tokens: 4096, messages: [{role: "user", content: content}]})
+ body: JSON.stringify({model: "claude-sonnet-4-6", max_tokens: 4096, messages: [{role: "user", content: content}]})
  }).then(function(r) {
  if (!r.ok) return r.json().then(function(err) { throw new Error("API " + r.status + ": " + (err.error && err.error.message || JSON.stringify(err))); });
  return r.json();
@@ -4614,7 +4616,7 @@ function ViewCommercials({
  );
  var sections = docData && docData.sections ? docData.sections : makeCommercials(deal);
  return React.createElement("div", null,
- React.createElement("div", {style:{background:"linear-gradient(135deg,#064e3b,#0f172a)",padding:"28px 32px",borderRadius:"12px 12px 0 0"}},
+ React.createElement("div", {style:{background:"linear-gradient(135deg,#064e3b,#191920)",padding:"28px 32px",borderRadius:"12px 12px 0 0"}},
  React.createElement("h2", {style:{fontSize:20,fontWeight:800,color:"#6ee7b7",margin:"0 0 4px"}}, deal.name, " Commercial Summary"),
  React.createElement("p", {style:{fontSize:13,color:"#a7f3d0",margin:0}}, "Pricing, Sizing & Deal Structure", deal.acv ? " \u2014 " + deal.acv : "")
  ),
@@ -4676,7 +4678,7 @@ function ViewROI({ deal, generated, docData, updateDocData }) {
 
  var sections = docData || makeROI(deal);
  return /*#__PURE__*/React.createElement("div", null,
- /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#7c2d12,#1e293b)" }) },
+ /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#7c2d12,#21212b)" }) },
  /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#fdba74", margin: "0 0 4px" } }, deal.name, " ROI Analysis"),
  /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#fed7aa", margin: 0 } }, "Return on Investment & Business Case", deal.acv ? " \u2014 " + deal.acv : "")
  ),
@@ -4694,7 +4696,7 @@ function ViewROI({ deal, generated, docData, updateDocData }) {
 function ViewAccountPlan({ deal, generated, docData, updateDocData }) {
  if (!generated) return /*#__PURE__*/React.createElement(EmptyState, { label: "Account Plan", name: deal.name, analyzed: !!deal.meddpicc });
  var sections = docData || makeAccountPlan(deal);
- return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#1e3a5f,#0f172a)" }) }, /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#93c5fd", margin: "0 0 4px" } }, deal.name, " Account Plan"), /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#bfdbfe", margin: 0 } }, "Strategic Account Planning & Growth", deal.acv ? " \u2014 " + deal.acv : "")), /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#3b82f6", IconComp: IClipboard }));
+ return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", { style: darkHeader({ background: "linear-gradient(135deg,#1e3a5f,#191920)" }) }, /*#__PURE__*/React.createElement("h2", { style: { fontSize: 20, fontWeight: 800, color: "#93c5fd", margin: "0 0 4px" } }, deal.name, " Account Plan"), /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#bfdbfe", margin: 0 } }, "Strategic Account Planning & Growth", deal.acv ? " \u2014 " + deal.acv : "")), /*#__PURE__*/React.createElement(EditableSections, { sections: sections, onChange: updateDocData, accentColor: "#3b82f6", IconComp: IClipboard }));
 }
 
 function ViewHistory({
@@ -4751,7 +4753,7 @@ function ViewHistory({
  onClick: addH,
  style: {
  background: "#eff6ff",
- color: "#1d4ed8",
+ color: "#2b7de9",
  border: "1px solid #bfdbfe",
  borderRadius: 6,
  padding: "5px 12px",
@@ -4792,7 +4794,7 @@ function ViewHistory({
  style: {
  flex: 1,
  fontSize: 13,
- color: "#1e293b"
+ color: "#21212b"
  }
  }), /*#__PURE__*/React.createElement(ECell, {
  value: h.user,
@@ -4834,7 +4836,7 @@ function ViewExecSummary({
  var sections = docData || makeExecSummary(deal);
  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
  style: darkHeader({
- background: "linear-gradient(135deg,#0c4a6e,#1e293b)"
+ background: "linear-gradient(135deg,#0c4a6e,#21212b)"
  })
  }, /*#__PURE__*/React.createElement("h2", {
  style: {
@@ -4871,7 +4873,7 @@ function ViewTimeline({
  });
  var events = docData || makeTimeline(deal);
  var typeColors = {
- milestone: "#2563eb",
+ milestone: "#3694fc",
  pain: "#dc2626",
  champion: "#059669",
  eb: "#7c3aed",
@@ -4932,7 +4934,7 @@ function ViewTimeline({
  onClick: addEvent,
  style: {
  background: "#eff6ff",
- color: "#1d4ed8",
+ color: "#2b7de9",
  border: "1px solid #bfdbfe",
  borderRadius: 6,
  padding: "5px 12px",
@@ -5041,7 +5043,7 @@ function ViewTimeline({
  style: {
  fontSize: 13,
  fontWeight: 600,
- color: "#1e293b"
+ color: "#21212b"
  }
  }), /*#__PURE__*/React.createElement(ECell, {
  value: ev.detail || "",
@@ -5101,7 +5103,7 @@ function ViewDiscountApproval({
  },
  style: {
  fontSize: 13,
- color: highlight ? "#dc2626" : "#1e293b",
+ color: highlight ? "#dc2626" : "#21212b",
  fontWeight: highlight ? 700 : 400,
  flex: 1
  }
@@ -5109,7 +5111,7 @@ function ViewDiscountApproval({
  };
  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
  style: darkHeader({
- background: "linear-gradient(135deg,#7f1d1d,#1e293b)"
+ background: "linear-gradient(135deg,#7f1d1d,#21212b)"
  })
  }, /*#__PURE__*/React.createElement("h2", {
  style: {
@@ -5133,7 +5135,7 @@ function ViewDiscountApproval({
  style: {
  fontSize: 14,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  margin: "0 0 12px",
  display: "flex",
  alignItems: "center",
@@ -5151,7 +5153,7 @@ function ViewDiscountApproval({
  style: {
  fontSize: 14,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  margin: "0 0 12px",
  display: "flex",
  alignItems: "center",
@@ -5170,7 +5172,7 @@ function ViewDiscountApproval({
  style: {
  fontSize: 14,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  margin: "0 0 8px"
  }
  }, "Discount Request"), /*#__PURE__*/React.createElement("p", {
@@ -5221,7 +5223,7 @@ function ViewDiscountApproval({
  border: "1px solid #e2e8f0",
  borderRadius: 6,
  fontSize: 13,
- color: "#1e293b",
+ color: "#21212b",
  outline: "none",
  boxSizing: "border-box"
  }
@@ -5334,7 +5336,7 @@ function scoreMEDDPICC(m) {
  stage = "Closing";
  } else if (pct >= 70) {
  forecast = "Strong Upside";
- forecastColor = "#2563eb";
+ forecastColor = "#3694fc";
  stage = "Negotiation";
  } else if (pct >= 50) {
  forecast = "Upside";
@@ -5445,7 +5447,7 @@ function DealDashboard({
  }), React.createElement("button", {
  onClick: saveEdit,
  style: {
- background: "#2563eb",
+ background: "#3694fc",
  color: "#fff",
  border: "none",
  borderRadius: 4,
@@ -5504,7 +5506,7 @@ function DealDashboard({
  // Header
  React.createElement("div", {
  style: darkHeader({
- background: "linear-gradient(135deg,#1e3a5f,#0f172a)"
+ background: "linear-gradient(135deg,#1e3a5f,#191920)"
  })
  }, React.createElement("div", {
  style: {
@@ -5699,7 +5701,7 @@ function DealDashboard({
  style: {
  fontSize: 12,
  fontWeight: 700,
- color: "#1e293b"
+ color: "#21212b"
  }
  }, it.label)), React.createElement("span", {
  style: {
@@ -5803,7 +5805,7 @@ function DealDashboard({
  React.createElement("div", {
  style: {
  ...card,
- borderLeft: "4px solid #2563eb"
+ borderLeft: "4px solid #3694fc"
  }
  }, React.createElement("h3", {
  style: {
@@ -5817,7 +5819,7 @@ function DealDashboard({
  }
  }, React.createElement(ISparkles, {
  size: 14,
- color: "#2563eb"
+ color: "#3694fc"
  }), " Sales Coach \u2014 ", score.stage, " Stage"), stageCoaching.map(function (tip, i) {
  return React.createElement("div", {
  key: i,
@@ -5878,7 +5880,7 @@ function DealDashboard({
  style: {
  fontSize: 14,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  margin: "0 0 12px",
  display: "flex",
  alignItems: "center",
@@ -5886,7 +5888,7 @@ function DealDashboard({
  }
  }, React.createElement(IFile, {
  size: 14,
- color: "#2563eb"
+ color: "#3694fc"
  }), " Deal Details ", React.createElement("span", {
  style: {
  fontSize: 10,
@@ -6020,7 +6022,7 @@ function DealDashboard({
  style: {
  fontSize: 14,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  margin: "0 0 8px",
  display: "flex",
  alignItems: "center",
@@ -6028,7 +6030,7 @@ function DealDashboard({
  }
  }, React.createElement(IFolder, {
  size: 14,
- color: "#2563eb"
+ color: "#3694fc"
  }), " Source Intelligence (", (deal.docs || []).length, " files)"), (deal.docs || []).length === 0 ? React.createElement("p", {
  style: {
  fontSize: 12,
@@ -6184,7 +6186,7 @@ function DealDashboard({
  style: {
  fontSize: 14,
  fontWeight: 700,
- color: "#1e293b",
+ color: "#21212b",
  margin: "0 0 10px",
  display: "flex",
  alignItems: "center",
@@ -6253,14 +6255,14 @@ function DealDashboard({
  }))));
 }
 
-// ── Account Dashboard Component ──────────────────────────────────────────
+// ââ Account Dashboard Component ââââââââââââââââââââââââââââââââââââââââââ
 function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKey, setDocKey }) {
  var _React = React;
  var useState = _React.useState, useEffect = _React.useEffect;
  var opps = account.opportunities || {};
  var oppList = Object.entries(opps);
 
- // ── Rollup calculations ──
+ // ââ Rollup calculations ââ
  function parseACV(s) { if (!s) return 0; var n = String(s).replace(/[^0-9.]/g, ''); return parseFloat(n) || 0; }
  var totalACV = oppList.reduce(function(sum, e) { return sum + parseACV(e[1].acv); }, 0);
  var totalTCV = oppList.reduce(function(sum, e) { return sum + parseACV(e[1].tcv); }, 0);
@@ -6325,7 +6327,7 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  (e[1].products || []).forEach(function(p) { soldProducts[p] = (soldProducts[p] || []); soldProducts[p].push(e[1].name); });
  });
 
- // ── News & Lawsuits (live web search) ──
+ // ââ News & Lawsuits (live web search) ââ
  var _news = useState(account._cachedNews || null), news = _news[0], setNews = _news[1];
  var _newsLoading = useState(false), newsLoading = _newsLoading[0], setNewsLoading = _newsLoading[1];
  var _newsError = useState(null), newsError = _newsError[0], setNewsError = _newsError[1];
@@ -6343,7 +6345,7 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  fetch("https://api.anthropic.com/v1/messages", {
  method: "POST",
  headers: {"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
- body: JSON.stringify({model: "claude-sonnet-4-20250514", max_tokens: 4096, messages: [{role: "user", content: prompt}]})
+ body: JSON.stringify({model: "claude-sonnet-4-6", max_tokens: 4096, messages: [{role: "user", content: prompt}]})
  }).then(function(r) { return r.json(); })
  .then(function(data) {
  var rt = data.content && data.content[0] && data.content[0].text || "";
@@ -6360,7 +6362,7 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  // Card style helpers
  var card = function(extra) { return Object.assign({ background: "#fff", borderRadius: 12, padding: "20px 24px", border: "1px solid #e2e8f0", marginBottom: 16 }, extra || {}); };
  var sectionTitle = function(text, icon) {
- return React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#1e293b", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 8 } }, icon || null, text);
+ return React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#21212b", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 8 } }, icon || null, text);
  };
  var badge = function(text, color, bg) {
  return React.createElement("span", { style: { display: "inline-block", fontSize: 11, fontWeight: 700, color: color, background: bg, padding: "2px 10px", borderRadius: 12 } }, text);
@@ -6368,9 +6370,9 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
 
  return React.createElement("div", { style: { padding: 20, maxWidth: 1100, margin: "0 auto" } },
 
- // ── HEADER ──
+ // ââ HEADER ââ
  React.createElement("div", { style: { marginBottom: 24 } },
- React.createElement("h1", { style: { fontSize: 28, fontWeight: 800, color: "#0f172a", margin: "0 0 4px", letterSpacing: "-0.5px" } }, account.name || "Account"),
+ React.createElement("h1", { style: { fontSize: 28, fontWeight: 800, color: "#191920", margin: "0 0 4px", letterSpacing: "-0.5px" } }, account.name || "Account"),
  React.createElement("p", { style: { fontSize: 14, color: "#64748b", margin: 0 } },
  oppList.length + " Opportunit" + (oppList.length === 1 ? "y" : "ies") + " | ",
  "Pipeline: $" + (totalACV >= 1000000 ? (totalACV / 1000000).toFixed(2) + "M" : totalACV.toLocaleString()),
@@ -6378,15 +6380,15 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  )
  ),
 
- // ── PIPELINE ROLLUP ──
+ // ââ PIPELINE ROLLUP ââ
  React.createElement("div", { style: card() },
- sectionTitle("Pipeline Rollup", React.createElement(ITrend, { size: 16, color: "#2563eb" })),
+ sectionTitle("Pipeline Rollup", React.createElement(ITrend, { size: 16, color: "#3694fc" })),
  React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 16 } },
  Object.entries(stages).map(function(entry) {
  var stageColors = { Closing: "#10b981", Negotiation: "#3b82f6", Evaluation: "#f59e0b", Discovery: "#8b5cf6", Prospecting: "#94a3b8" };
- return React.createElement("div", { key: entry[0], style: { background: "#f8fafc", borderRadius: 8, padding: "12px 16px", borderLeft: "3px solid " + (stageColors[entry[0]] || "#94a3b8") } },
+ return React.createElement("div", { key: entry[0], style: { background: "#f2f0eb", borderRadius: 8, padding: "12px 16px", borderLeft: "3px solid " + (stageColors[entry[0]] || "#94a3b8") } },
  React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 4 } }, entry[0].toUpperCase()),
- React.createElement("div", { style: { fontSize: 20, fontWeight: 800, color: "#0f172a" } }, entry[1].length),
+ React.createElement("div", { style: { fontSize: 20, fontWeight: 800, color: "#191920" } }, entry[1].length),
  entry[1].map(function(opp) {
  return React.createElement("div", { key: opp.key, style: { fontSize: 12, color: "#475569", marginTop: 4, cursor: "pointer", textDecoration: "underline dotted" },
  onClick: function() { setOppKey(opp.key); setDocKey("dashboard"); }
@@ -6407,7 +6409,7 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  var score = opp.meddpicc ? scoreMEDDPICC(opp.meddpicc) : 0;
  var stage = score >= 90 ? "Closing" : score >= 70 ? "Negotiation" : score >= 50 ? "Evaluation" : score >= 25 ? "Discovery" : "Prospecting";
  return React.createElement("tr", { key: oKey, style: { cursor: "pointer" }, onClick: function() { setOppKey(oKey); setDocKey("dashboard"); } },
- React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9", fontWeight: 600, color: "#1d4ed8" } }, opp.name || oKey),
+ React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9", fontWeight: 600, color: "#2b7de9" } }, opp.name || oKey),
  React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9" } }, opp.acv || " - "),
  React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9", fontSize: 12, color: "#64748b" } }, (opp.products || []).join(", ") || " - "),
  React.createElement("td", { style: { padding: "10px", borderBottom: "1px solid #f1f5f9" } },
@@ -6421,7 +6423,7 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  )
  ),
 
- // ── WHITE SPACE ANALYSIS ──
+ // ââ WHITE SPACE ANALYSIS ââ
  React.createElement("div", { style: card() },
  sectionTitle("White Space Analysis", React.createElement(ITarget, { size: 16, color: "#8b5cf6" })),
  React.createElement("p", { style: { fontSize: 12, color: "#64748b", margin: "0 0 12px" } }, "Products sold vs. available catalog. Green = active opportunity. Gray = white space to pursue."),
@@ -6439,7 +6441,7 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  )
  ),
 
- // ── STAKEHOLDER MAP (rolled up) ──
+ // ââ STAKEHOLDER MAP (rolled up) ââ
  allStakeholders.length > 0 && React.createElement("div", { style: card() },
  sectionTitle("Key Stakeholders (Across All Opportunities)", React.createElement(IGlobe, { size: 16, color: "#f59e0b" })),
  React.createElement("table", { style: { width: "100%", fontSize: 12, borderCollapse: "collapse" } },
@@ -6451,31 +6453,31 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  React.createElement("tbody", null, allStakeholders.slice(0, 20).map(function(s, i) {
  var infColors = { Champion: "#10b981", "Economic Buyer": "#3b82f6", "Technical Evaluator": "#8b5cf6", Blocker: "#ef4444" };
  return React.createElement("tr", { key: i },
- React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc", fontWeight: 600, color: "#1e293b" } }, s.name),
- React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc", color: "#64748b" } }, s.role),
- React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc" } }, badge(s.influence, infColors[s.influence] || "#475569", (infColors[s.influence] || "#94a3b8") + "18")),
- React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc", color: "#64748b", fontSize: 11 } }, s.fromOpp),
- React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f8fafc", color: "#94a3b8", fontSize: 11 } }, s.notes || " - ")
+ React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f2f0eb", fontWeight: 600, color: "#21212b" } }, s.name),
+ React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f2f0eb", color: "#64748b" } }, s.role),
+ React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f2f0eb" } }, badge(s.influence, infColors[s.influence] || "#475569", (infColors[s.influence] || "#94a3b8") + "18")),
+ React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f2f0eb", color: "#64748b", fontSize: 11 } }, s.fromOpp),
+ React.createElement("td", { style: { padding: "6px 8px", borderBottom: "1px solid #f2f0eb", color: "#94a3b8", fontSize: 11 } }, s.notes || " - ")
  );
  }))
  )
  ),
 
- // ── FINANCIALS & NEWS ──
+ // ââ FINANCIALS & NEWS ââ
  React.createElement("div", { style: card() },
  React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 } },
- sectionTitle("Company Intelligence", React.createElement(IStar, { size: 16, color: "#2563eb" })),
+ sectionTitle("Company Intelligence", React.createElement(IStar, { size: 16, color: "#3694fc" })),
  React.createElement("button", {
  onClick: fetchNews,
  disabled: newsLoading,
- style: { padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 6, border: "1px solid #2563eb", background: newsLoading ? "#e2e8f0" : "#eff6ff", color: "#2563eb", cursor: newsLoading ? "default" : "pointer" }
+ style: { padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 6, border: "1px solid #3694fc", background: newsLoading ? "#e2e8f0" : "#eff6ff", color: "#3694fc", cursor: newsLoading ? "default" : "pointer" }
  }, newsLoading ? "Researching..." : news ? "Refresh Intel" : "Fetch Company Intel")
  ),
  newsError && React.createElement("p", { style: { color: "#ef4444", fontSize: 12 } }, newsError),
  !news && !newsLoading && !newsError && React.createElement("p", { style: { color: "#94a3b8", fontSize: 13, textAlign: "center", padding: "20px 0" } }, "Click \"Fetch Company Intel\" to pull financials, news, lawsuits, and tech stack for " + account.name + "."),
 
  // Company Overview
- news && news.companyOverview && React.createElement("div", { style: { background: "#f8fafc", borderRadius: 8, padding: "12px 16px", marginBottom: 14 } },
+ news && news.companyOverview && React.createElement("div", { style: { background: "#f2f0eb", borderRadius: 8, padding: "12px 16px", marginBottom: 14 } },
  React.createElement("p", { style: { fontSize: 13, color: "#334155", margin: 0, lineHeight: 1.6 } }, news.companyOverview)
  ),
 
@@ -6493,7 +6495,7 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  ].filter(function(f) { return f.value; }).map(function(f) {
  return React.createElement("div", { key: f.label, style: { background: "#f0f7ff", borderRadius: 8, padding: "8px 12px" } },
  React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: "#64748b" } }, f.label.toUpperCase()),
- React.createElement("div", { style: { fontSize: 15, fontWeight: 700, color: "#1e293b", marginTop: 2 } }, f.value)
+ React.createElement("div", { style: { fontSize: 15, fontWeight: 700, color: "#21212b", marginTop: 2 } }, f.value)
  );
  })
  ),
@@ -6508,13 +6510,13 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  news && news.recentNews && news.recentNews.length > 0 && React.createElement("div", { style: { marginBottom: 16 } },
  React.createElement("h4", { style: { fontSize: 12, fontWeight: 700, color: "#64748b", marginBottom: 8 } }, "RECENT NEWS"),
  news.recentNews.map(function(n, i) {
- return React.createElement("div", { key: i, style: { padding: "10px 14px", borderLeft: "3px solid #3b82f6", background: "#f8fafc", borderRadius: "0 8px 8px 0", marginBottom: 8 } },
+ return React.createElement("div", { key: i, style: { padding: "10px 14px", borderLeft: "3px solid #3b82f6", background: "#f2f0eb", borderRadius: "0 8px 8px 0", marginBottom: 8 } },
  React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline" } },
- React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: "#1e293b" } }, n.headline),
+ React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: "#21212b" } }, n.headline),
  n.date && React.createElement("span", { style: { fontSize: 10, color: "#94a3b8", flexShrink: 0, marginLeft: 8 } }, n.date)
  ),
  React.createElement("p", { style: { fontSize: 12, color: "#475569", margin: "4px 0 0", lineHeight: 1.5 } }, n.summary),
- n.relevance && React.createElement("p", { style: { fontSize: 11, color: "#2563eb", margin: "4px 0 0", fontStyle: "italic" } }, "Sales angle: " + n.relevance)
+ n.relevance && React.createElement("p", { style: { fontSize: 11, color: "#3694fc", margin: "4px 0 0", fontStyle: "italic" } }, "Sales angle: " + n.relevance)
  );
  })
  ),
@@ -6526,7 +6528,7 @@ function AccountDashboard({ account, allDeals, accountKey, onSelectOpp, setOppKe
  var statusColor = l.status === "active" ? "#ef4444" : l.status === "settled" ? "#f59e0b" : "#94a3b8";
  return React.createElement("div", { key: i, style: { padding: "10px 14px", borderLeft: "3px solid " + statusColor, background: "#fef2f2", borderRadius: "0 8px 8px 0", marginBottom: 8 } },
  React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline" } },
- React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: "#1e293b" } }, l.title),
+ React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: "#21212b" } }, l.title),
  React.createElement("span", { style: { fontSize: 10, fontWeight: 700, color: statusColor, textTransform: "uppercase" } }, l.status)
  ),
  React.createElement("p", { style: { fontSize: 12, color: "#475569", margin: "4px 0 0" } }, l.summary),
@@ -7045,7 +7047,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  if (!apiKey) {
  setSettingsModal(true);
  setAnalyzing(false);
- showToast("⚠️ Missing Claude API key - opening Settings. Paste your key and Save.");
+ showToast("â ï¸ Missing Claude API key - opening Settings. Paste your key and Save.");
  analyzeInProgressRef.current = false;
  return;
  }
@@ -7262,7 +7264,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  return;
  }
  if (!deal.meddpicc && docKey !== "meddpicc" && docKey !== "dashboard") {
- showToast("⚠️ Click Analyze first - Generate needs MEDDPICC data extracted from your uploaded files");
+ showToast("â ï¸ Click Analyze first - Generate needs MEDDPICC data extracted from your uploaded files");
  return;
  }
  setGenerating(true);
@@ -7339,7 +7341,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  const el = document.getElementById("view-area");
  if (!el) return;
  const w = window.open("", "_blank");
- w.document.write("<html><head><title>" + deal.name + " \u2014 " + current.label + "</title><style>body{font-family:-apple-system,sans-serif;padding:28px;color:#1e293b}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f8fafc;padding:8px 10px;text-align:left;font-size:11px;color:#64748b;border-bottom:1px solid #e2e8f0}td{padding:8px 10px;border-bottom:1px solid #f1f5f9}h2{color:#1d4ed8}svg{display:none}.soe-hidden{display:none!important}.no-print{display:none!important}</style></head><body>" + el.innerHTML + "</body></html>");
+ w.document.write("<html><head><title>" + deal.name + " \u2014 " + current.label + "</title><style>body{font-family:-apple-system,sans-serif;padding:28px;color:#21212b}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f2f0eb;padding:8px 10px;text-align:left;font-size:11px;color:#64748b;border-bottom:1px solid #e2e8f0}td{padding:8px 10px;border-bottom:1px solid #f1f5f9}h2{color:#2b7de9}svg{display:none}.soe-hidden{display:none!important}.no-print{display:none!important}</style></head><body>" + el.innerHTML + "</body></html>");
  w.document.close();
  w.focus();
  setTimeout(function () {
@@ -7365,7 +7367,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  style: {
  display: "flex",
  height: "100vh",
- background: "#f8fafc",
+ background: "#f2f0eb",
  fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
  overflow: "hidden"
  }
@@ -7375,7 +7377,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  bottom: 24,
  left: "50%",
  transform: "translateX(-50%)",
- background: "#1e293b",
+ background: "#21212b",
  color: "#fff",
  padding: "10px 20px",
  borderRadius: 8,
@@ -7415,7 +7417,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  margin: "0 0 6px",
  fontSize: 15,
  fontWeight: 800,
- color: "#0f172a"
+ color: "#191920"
  }
  }, "Settings"), /*#__PURE__*/React.createElement("p", {
  style: {
@@ -7467,7 +7469,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
  onClick: saveSettings,
  style: btn({
- background: "#2563eb",
+ background: "#3694fc",
  color: "#fff"
  })
  }, "Save Key")), React.createElement("div", {
@@ -7524,7 +7526,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  margin: "0 0 6px",
  fontSize: 15,
  fontWeight: 800,
- color: "#0f172a"
+ color: "#191920"
  }
  }, "Link Google Drive Folder"), /*#__PURE__*/React.createElement("p", {
  style: {
@@ -7565,7 +7567,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
  onClick: saveDriveUrl,
  style: btn({
- background: "#2563eb",
+ background: "#3694fc",
  color: "#fff"
  })
  }, "Save Link")))), /*#__PURE__*/React.createElement("aside", {
@@ -7586,8 +7588,8 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  style: { padding: sidebar ? "14px 14px 6px" : "14px 8px 6px", display: "flex", alignItems: "center", justifyContent: sidebar ? "space-between" : "center" }
  },
  sidebar ? /*#__PURE__*/React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
- /*#__PURE__*/React.createElement(ISparkles, { size: 17, color: "#2563eb" }),
- /*#__PURE__*/React.createElement("h1", { style: { fontSize: 17, fontWeight: 800, color: "#0f172a", margin: 0, letterSpacing: "-0.3px" } }, "Sales AI")
+ /*#__PURE__*/React.createElement(ISparkles, { size: 17, color: "#3694fc" }),
+ /*#__PURE__*/React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } }, React.createElement("span", { style: { fontSize: 17, fontWeight: 800, color: "#21212b", letterSpacing: "-0.3px" } }, "N"), React.createElement("span", { style: { fontSize: 17, fontWeight: 800, color: "#21212b", letterSpacing: "-0.3px", position: "relative" } }, "i", React.createElement("span", { style: { position: "absolute", top: -2, right: 0, width: 4, height: 4, borderRadius: "50%", background: "#3694fc" } })), React.createElement("span", { style: { fontSize: 17, fontWeight: 800, color: "#21212b", letterSpacing: "-0.3px" } }, "CE Sales AI"))
  ) : null,
  /*#__PURE__*/React.createElement("button", {
  onClick: function () { setSidebar(function (v) { return !v; }); },
@@ -7603,7 +7605,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  style: { padding: "0 14px 10px", display: "flex", gap: 6 }
  }, /*#__PURE__*/React.createElement("button", {
  onClick: newAccount,
- style: btn({ flex: 1, justifyContent: "center", background: "#1e293b", color: "#fff", padding: "9px" })
+ style: btn({ flex: 1, justifyContent: "center", background: "#21212b", color: "#fff", padding: "9px" })
  }, /*#__PURE__*/React.createElement(IPlus, { size: 14 }), " New Account"), /*#__PURE__*/React.createElement("button", {
  onClick: function () { setApiKeyDraft(apiKey); setSettingsModal(true); },
  style: btn({ background: "#f1f5f9", color: "#64748b", padding: "9px" })
@@ -7614,7 +7616,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  !sidebar && /*#__PURE__*/React.createElement("div", {
  style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 0" }
  },
- /*#__PURE__*/React.createElement(ISparkles, { size: 16, color: "#2563eb" }),
+ /*#__PURE__*/React.createElement(ISparkles, { size: 16, color: "#3694fc" }),
  /*#__PURE__*/React.createElement("div", { style: { width: 20, borderBottom: "1px solid #e2e8f0", margin: "4px 0" } }),
  Object.entries(allDeals).map(function (entry) {
  var k = entry[0], a = entry[1];
@@ -7622,7 +7624,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  key: k,
  onClick: function () { setAccountKey(k); var opps = a.opportunities || {}; setOppKey(Object.keys(opps)[0] || ""); setSidebar(true); },
  title: a.name,
- style: { background: accountKey === k ? "#eff6ff" : "transparent", border: "none", cursor: "pointer", borderRadius: 6, padding: "6px 10px", color: accountKey === k ? "#1d4ed8" : "#64748b", fontSize: 11, fontWeight: 700, width: "100%", textAlign: "center" }
+ style: { background: accountKey === k ? "#eff6ff" : "transparent", border: "none", cursor: "pointer", borderRadius: 6, padding: "6px 10px", color: accountKey === k ? "#2b7de9" : "#64748b", fontSize: 11, fontWeight: 700, width: "100%", textAlign: "center" }
  }, (a.name || "?").substring(0, 2).toUpperCase());
  }),
  /*#__PURE__*/React.createElement("div", { style: { width: 20, borderBottom: "1px solid #e2e8f0", margin: "4px 0" } }),
@@ -7631,7 +7633,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  key: d.key,
  onClick: function () { setDocKey(d.key); setSidebar(true); },
  title: d.label,
- style: { background: docKey === d.key ? "#eff6ff" : "transparent", border: "none", cursor: "pointer", borderRadius: 6, padding: "6px 10px", color: docKey === d.key ? "#1d4ed8" : "#94a3b8", width: "100%" }
+ style: { background: docKey === d.key ? "#eff6ff" : "transparent", border: "none", cursor: "pointer", borderRadius: 6, padding: "6px 10px", color: docKey === d.key ? "#2b7de9" : "#94a3b8", width: "100%" }
  }, /*#__PURE__*/React.createElement(d.Icon, { size: 14 }));
  })
  ),
@@ -7665,14 +7667,14 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  flex: 1,
  justifyContent: "flex-start",
  background: accountKey === acctKey ? "#eff6ff" : "transparent",
- color: accountKey === acctKey ? "#1d4ed8" : "#475569",
+ color: accountKey === acctKey ? "#2b7de9" : "#475569",
  padding: "7px 9px",
  overflow: "hidden"
  })
  }, 
  /*#__PURE__*/React.createElement("span", {
  style: { display: "inline-block", width: 14, marginRight: 4, textAlign: "center" }
- }, isExpanded ? "▼" : "▶"),
+ }, isExpanded ? "â¼" : "â¶"),
  /*#__PURE__*/React.createElement(IFolder, { size: 14 }), 
  " ", 
  /*#__PURE__*/React.createElement("span", {
@@ -7788,7 +7790,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  width: "100%",
  justifyContent: "flex-start",
  background: docKey === d.key ? "#eff6ff" : "transparent",
- color: docKey === d.key ? "#1d4ed8" : "#475569",
+ color: docKey === d.key ? "#2b7de9" : "#475569",
  padding: "7px 9px",
  marginBottom: 2
  })
@@ -7808,7 +7810,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  style: btn({
  flex: 1,
  justifyContent: "center",
- background: "#f8fafc",
+ background: "#f2f0eb",
  color: "#64748b",
  border: "1px solid #e2e8f0",
  padding: "6px",
@@ -7819,7 +7821,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  style: btn({
  flex: 1,
  justifyContent: "center",
- background: "#f8fafc",
+ background: "#f2f0eb",
  color: "#64748b",
  border: "1px solid #e2e8f0",
  padding: "6px",
@@ -7837,7 +7839,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  }
  }, /*#__PURE__*/React.createElement("div", {
  style: {
- background: "#f8fafc",
+ background: "#f2f0eb",
  flexShrink: 0
  }
  }, /*#__PURE__*/React.createElement("div", {
@@ -7875,7 +7877,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  style: {
  fontSize: 20,
  fontWeight: 800,
- color: "#0f172a",
+ color: "#191920",
  letterSpacing: -0.3
  }
  }, account ? account.name : "Account Dashboard") : /*#__PURE__*/React.createElement("input", {
@@ -7907,7 +7909,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  style: {
  fontSize: 20,
  fontWeight: 800,
- color: "#0f172a",
+ color: "#191920",
  border: "none",
  outline: "none",
  background: "transparent",
@@ -7934,7 +7936,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  }, [{
  id: "CXone",
  label: "CX",
- color: "#2563eb",
+ color: "#3694fc",
  bg: "#eff6ff"
  }, {
  id: "Cognigy AI",
@@ -8020,7 +8022,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  title: "Edit Drive link",
  style: btn({
  padding: "6px 8px",
- background: "#f8fafc",
+ background: "#f2f0eb",
  color: "#64748b",
  border: "1px solid #e2e8f0",
  fontSize: 10,
@@ -8063,7 +8065,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  onClick: generate,
  disabled: generating,
  style: btn({
- background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+ background: "linear-gradient(135deg,#3694fc,#2b7de9)",
  color: "#fff",
  padding: "6px 14px",
  fontSize: 11,
@@ -8184,7 +8186,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  width: "100%",
  fontSize: 13,
  fontWeight: f.v ? 700 : 400,
- color: f.v ? "#0f172a" : "#d4d8e0",
+ color: f.v ? "#191920" : "#d4d8e0",
  border: "none",
  outline: "none",
  background: "transparent",
@@ -8279,7 +8281,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  width: "100%",
  fontSize: 13,
  fontWeight: f.v ? 700 : 400,
- color: f.v ? "#0f172a" : "#d4d8e0",
+ color: f.v ? "#191920" : "#d4d8e0",
  border: "none",
  outline: "none",
  background: "transparent",
@@ -8319,10 +8321,10 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  size: 10,
  color: "#8b5cf6"
  }), " SOURCE FILES ", (deal.docs || []).length > 0 ? "(" + (deal.docs || []).length + ")" : "",
- cloudSyncStatus === "synced" ? React.createElement("span", { style: { fontSize: 9, color: "#22c55e", marginLeft: 4 }, title: "All files synced to cloud" }, " ☁ synced") :
- cloudSyncStatus === "partial" ? React.createElement("span", { style: { fontSize: 9, color: "#f59e0b", marginLeft: 4 }, title: "Some files synced to cloud" }, " ☁ partial") :
- cloudSyncStatus === "local-only" ? React.createElement("span", { style: { fontSize: 9, color: "#94a3b8", marginLeft: 4 }, title: "Files only stored locally" }, " ☁ local") :
- cloudSyncStatus === "uploading" ? React.createElement("span", { style: { fontSize: 9, color: "#3b82f6", marginLeft: 4 } }, " ☁ uploading...") : null), (deal.docs || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
+ cloudSyncStatus === "synced" ? React.createElement("span", { style: { fontSize: 9, color: "#22c55e", marginLeft: 4 }, title: "All files synced to cloud" }, " â synced") :
+ cloudSyncStatus === "partial" ? React.createElement("span", { style: { fontSize: 9, color: "#f59e0b", marginLeft: 4 }, title: "Some files synced to cloud" }, " â partial") :
+ cloudSyncStatus === "local-only" ? React.createElement("span", { style: { fontSize: 9, color: "#94a3b8", marginLeft: 4 }, title: "Files only stored locally" }, " â local") :
+ cloudSyncStatus === "uploading" ? React.createElement("span", { style: { fontSize: 9, color: "#3b82f6", marginLeft: 4 } }, " â uploading...") : null), (deal.docs || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
  style: {
  flex: 1,
  display: "flex",
@@ -8361,7 +8363,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  alignItems: "center",
  gap: 6,
  padding: "4px 8px",
- background: "#f8fafc",
+ background: "#f2f0eb",
  borderRadius: 6,
  border: "1px solid #f1f5f9"
  }
@@ -8446,7 +8448,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  padding: "4px 0",
  border: "none",
  fontSize: 12,
- color: "#1e293b",
+ color: "#21212b",
  resize: "none",
  outline: "none",
  boxSizing: "border-box",
@@ -8506,7 +8508,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  },
  style: {
  padding: "4px 14px",
- background: "#2563eb",
+ background: "#3694fc",
  color: "#fff",
  border: "none",
  borderRadius: 6,
@@ -8523,7 +8525,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  flexDirection: "column",
  gap: 2,
  marginTop: 6,
- borderTop: "1px solid #f8fafc",
+ borderTop: "1px solid #f2f0eb",
  paddingTop: 6
  }
  }, (deal.updates || []).map(function (u, i) {
@@ -8619,7 +8621,7 @@ window._chatContext={deal:deal,accountKey:accountKey,oppKey:oppKey,apiKey:apiKey
  height: 34,
  borderRadius: "50%",
  border: "3px solid #bfdbfe",
- borderTopColor: "#2563eb",
+ borderTopColor: "#3694fc",
  marginBottom: 10
  }
  }), /*#__PURE__*/React.createElement("p", {
@@ -8658,7 +8660,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.c
 
 }catch(e){
 var ld=document.getElementById("app-loading");if(ld)ld.remove();
-document.getElementById("root").innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#dc2626">App Error</h2><p style="color:#64748b;margin:12px 0">'+e.message+'</p><button onclick="location.reload()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer">Reload</button></div>';
+document.getElementById("root").innerHTML='<div style="padding:40px;text-align:center"><h2 style="color:#dc2626">App Error</h2><p style="color:#64748b;margin:12px 0">'+e.message+'</p><button onclick="location.reload()" style="padding:8px 16px;background:#3694fc;color:#fff;border:none;border-radius:6px;cursor:pointer">Reload</button></div>';
 }
 </script>
 <script>
@@ -9096,7 +9098,7 @@ document.getElementById("root").innerHTML='<div style="padding:40px;text-align:c
  return data || [];
  }, 'Loading deal updates');
 
- // Convert to app format - reconstruct the ACCOUNT → OPPORTUNITY hierarchy
+ // Convert to app format - reconstruct the ACCOUNT â OPPORTUNITY hierarchy
  // directly using the accountKey/oppKey that were saved in _appData, so we
  // don't rely on migrateToAccountModel (which nests keys runaway-style).
  // Helper: strip nested/corrupt keys down to just the base segment
@@ -9886,7 +9888,7 @@ function sendToClaudeChat(msgs,onChunk,onDone){
  var k=ctx&&ctx.apiKey?ctx.apiKey:"";
  if(!k){onDone("Please add your Claude API key in Settings first.");return;}
  var body=JSON.stringify({
- model:"claude-sonnet-4-20250514",
+ model:"claude-sonnet-4-6",
  max_tokens:1024,
  system:"You are a strategic enterprise sales AI assistant for NiCE and Cognigy. You help AEs analyze deals, coach on MEDDPICC methodology, surface risks, and provide actionable recommendations. Be concise and direct. Here is the current deal context:\n\n"+buildDealContext(),
  messages:msgs
